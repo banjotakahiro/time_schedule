@@ -42,11 +42,11 @@
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 mr-2">
                     {{ __('Go back') }}
                 </a>
-                <a href="{{route(requested_shifts.edit, $requested_shift)}}"
+                <a href="{{route( 'requested_shifts.edit' , $requested_shift)}}"
                     class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 mr-2">
                     {{ __('Edit') }}
                 </a>
-                <form action="{{route(requested_shifts.delete, $requested_shift)}}" method="post">
+                <form action="{{route( 'requested_shifts.destroy' , $requested_shift)}}" method="post">
                     @csrf
                     @method('DELETE')
                     <input type="submit" value="{{ __('Delete') }}" onclick="if(!confirm('削除しますか？')){return false};"

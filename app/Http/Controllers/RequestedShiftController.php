@@ -19,4 +19,25 @@ class RequestedShiftController extends Controller
         $requested_shift = Requested_shift::find($id);
         return view('requested_shifts.show', ['requested_shift' => $requested_shift]);
     }
+    
+    public function edit($id)
+    {
+        $requested_shift = Requested_shift::find($id);
+        return view('requested_shifts.edit' ,['requested_shift' => $requested_shift]);
+    }
+
+    public function create()
+    {
+    
+    }
+
+    public function store()
+    {
+    
+    }
+
+    public function delete()
+    {
+    }
+
 }

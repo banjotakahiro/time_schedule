@@ -13,10 +13,10 @@
                     {{ __('Event Start') }}
                 </label>
                 <input type="date" name="start_date" id="start_date"
-                    value="" required
+                    value="{{$requested_shift -> start_date}}" required
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <input type="time" name="start_time" id="start_time"
-                    value="" required
+                    value="{{$requested_shift -> start_time}}" required
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="my-4 text-slate-500 text-lg leading-relaxed">
@@ -24,10 +24,10 @@
                     {{ __('Event End') }}
                 </label>
                 <input type="date" name="end_date" id="end_date" required
-                    value=""
+                    value="{{$requested_shift -> end_date}}"
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <input type="time" name="end_time" id="end_time" required
-                    value=""
+                    value="{{$requested_shift -> end_time}}"
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="my-4 text-slate-500 text-lg leading-relaxed">
@@ -35,7 +35,7 @@
                     {{ __('Event Name') }}
                 </label>
                 <input type="text" name="title" id="title" placeholder="{{ __('Event Name') }}"
-                    value="" required
+                    value="{{$requested_shift -> title}}" required
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="my-4 text-slate-500 text-lg leading-relaxed mb-2">
@@ -43,7 +43,7 @@
                     {{ __('Description') }}
                 </label>
                 <textarea name="body" id="body" placeholder="{{ __('Description') }}"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline h-32"></textarea>
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline h-32"{{$requested_shift -> body}}</textarea>
             </div>
             <input type="submit" value="{{ __('Save') }}"
                 class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

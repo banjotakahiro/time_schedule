@@ -31,7 +31,7 @@
                         </a>
                     </td>
                     <td class="py-4 px-6">
-                        <form action="{{ route('requested_shifts.delete' ,$requested_shift)}}" method="POST">
+                        <form action="{{ route('requested_shifts.destroy' ,$requested_shift)}}" method="POST">
                             @csrf
                             @method('DELETE')
                             <input type="submit" value="{{ __('Delete') }}"

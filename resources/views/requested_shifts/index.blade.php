@@ -1,4 +1,60 @@
 <x-app-layout>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shift Schedule</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-blue-50 min-h-screen p-5">
+  <div class="container mx-auto bg-white shadow-lg rounded-lg p-6">
+    <h1 class="text-3xl font-bold text-blue-700 mb-6 text-center">バイトシフト希望表</h1>
+    <table class="table-auto w-full border-collapse border border-blue-300">
+      <thead>
+        <tr>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">名前</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">1 (水)</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">2 (木)</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">3 (金)</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">4 (土)</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">5 (日)</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">6 (月)</th>
+          <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">7 (火)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Example Row 1 -->
+        <tr>
+          <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">山田 太郎</td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+        </tr>
+        <!-- Example Row 2 -->
+        <tr>
+          <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">石川 結子</td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+
     <div class="mt-10">
         <h1 class="text-center text-lg">予定一覧</h1>
 

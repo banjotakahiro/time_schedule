@@ -4,7 +4,7 @@
 
         <x-validation-errors class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-6" />
 
-        <form action="" method="POST"
+        <form action="{{route('requested_shifts.update' , $requested_shift)}}" method="POST"
             class="relative px-6 pb-6 flex-auto">
             @csrf
             @method('PATCH')
@@ -43,7 +43,7 @@
                     {{ __('Description') }}
                 </label>
                 <textarea name="body" id="body" placeholder="{{ __('Description') }}"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline h-32"{{$requested_shift -> body}}</textarea>
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline h-32">{{ $requested_shift->body }}</textarea>
             </div>
             <input type="submit" value="{{ __('Save') }}"
                 class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

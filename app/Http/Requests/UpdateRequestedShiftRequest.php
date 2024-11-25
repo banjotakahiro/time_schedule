@@ -22,7 +22,10 @@ class UpdateRequestedShiftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'title' => 'required|string|max:50',
+            'body' => 'required|string|max:2000',
+            'start' => 'required',
+            'end' => 'required',
         ];
     }
     protected function prepareForValidation()

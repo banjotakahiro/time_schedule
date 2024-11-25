@@ -4,7 +4,7 @@
 
         <x-validation-errors class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-6" />
 
-        <form action="" method="POST" class="relative px-6 pb-6 flex-auto">
+        <form action="{{route('requested_shifts.store')}}" method="POST" class="relative px-6 pb-6 flex-auto">
             @csrf
             <div class="my-4 text-slate-500 text-lg leading-relaxed">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="start">

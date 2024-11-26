@@ -17,7 +17,8 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
-    public const HOME = '/home';
+    //  ログイン後のリダイレクト先をindexのページにする
+    public const HOME = '/requested_shifts';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.

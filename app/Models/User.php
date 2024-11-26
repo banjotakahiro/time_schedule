@@ -64,4 +64,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(\App\Models\Company::class);
     }
+
+       public function requestedShifts()
+    {
+        return $this->hasMany(Requested_shift::class);
+    }
 }

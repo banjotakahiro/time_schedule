@@ -11,6 +11,11 @@ class Requested_shift extends Model
 {
      use HasFactory;
 
+        public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function start_diff()
     {
         return (new Carbon($this->start))->diffForHumans();

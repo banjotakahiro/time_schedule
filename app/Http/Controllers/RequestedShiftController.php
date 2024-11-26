@@ -7,15 +7,29 @@ use App\Http\Requests\UpdateRequestedShiftRequest;
 use Illuminate\Http\Request;
 
 use App\Models\Requested_shift;
+use App\Calendar\CalendarGenerator;
 
 
 class RequestedShiftController extends Controller
 {
     // indexページへ移動
-    public function index()
+    public function index(Request $request)
     {
-        $request_shifts = Requested_shift::all();
-        return view('requested_shifts.index', ['requested_shifts' => $request_shifts]);
+        $calendar = new CalendarGenerator();
+        // クエリパラメータ 'action' を取得
+        $action = $request->query('action');
+    // アクションに応じた処理を実行
+        if ($action === 'nextweek') {
+            // 実行したい関数を呼び出す
+            $week = $calendar->nextWeek();
+        }elseif ($action == 'previousweek') {
+            $week = $calendar->previousWeek();
+        }else {
+            $week = $calendar;
+        }
+        return view('requested_shifts.index', [
+            'currentWeek' => $week,
+        ]);
     }
     public function show($id)
     {
@@ -73,4 +87,6 @@ class RequestedShiftController extends Controller
         $requested_shift->delete();
         return redirect('/requested_shifts');
     }
+
+
 }

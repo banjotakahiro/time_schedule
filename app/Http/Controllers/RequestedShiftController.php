@@ -51,9 +51,14 @@ class RequestedShiftController extends Controller
         return view('requested_shifts.show', ['requested_shift' => $requested_shift]);
     }
 
-    public function create() 
+    public function create(Request $request) 
     {
-        return view('requested_shifts.create');
+        // パラメータを受け取る
+        $date = $request->query('date'); // クエリパラメータ 'date' を取得
+        $user_id = $request->query('user_id'); // クエリパラメータ 'user_id' を取得
+        // 必要に応じて処理を実行（例: データベース検索）
+        // ここでは単純にビューにデータを渡します
+        return view('requested_shifts.create', compact('date', 'user_id'));
     }
 
     public function store(StoreRequestedShiftRequest $request) 
@@ -64,7 +69,7 @@ class RequestedShiftController extends Controller
         $requested_shift->end = $request->end;
         $requested_shift->title = $request->title;
         $requested_shift->body = $request->body;
-
+        $requested_shift->user_id = $request->query('user_id');
         // 保存
         $requested_shift->save();
 

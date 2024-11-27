@@ -4,24 +4,24 @@
 
         <x-validation-errors class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mx-6" />
 
-        <form action="{{route('requested_shifts.store')}}" method="POST" class="relative px-6 pb-6 flex-auto">
+        <form action="{{ route('requested_shifts.store', ['user_id' => $user_id]) }}" method="POST" class="relative px-6 pb-6 flex-auto">
             @csrf
             <div class="my-4 text-slate-500 text-lg leading-relaxed">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="start">
                     {{ __('Event Start') }}
                 </label>
-                <input type="date" name="start_date" id="start_date" value="" required
+                <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $date) }}"
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <input type="time" name="start_time" id="start_time" value="" required
+                <input type="time" name="start_time" id="start_time" value="{{ old('start_time') }}"
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="my-4 text-slate-500 text-lg leading-relaxed">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="start">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="end">
                     {{ __('Event End') }}
                 </label>
-                <input type="date" name="end_date" id="end_date" value="" required
+                <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $date) }}"
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <input type="time" name="end_time" id="end_time" value="" required
+                <input type="time" name="end_time" id="end_time" value="{{ old('end_time') }}"
                     class="shadow appearance-none border rounded w-auto py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="my-4 text-slate-500 text-lg leading-relaxed">
@@ -29,7 +29,7 @@
                     {{ __('Event Name') }}
                 </label>
                 <input type="text" name="title" id="title" placeholder="{{ __('Event Name') }}"
-                    value="" required
+                    value="{{ old('title') }}"
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
             <div class="my-4 text-slate-500 text-lg leading-relaxed mb-2">
@@ -37,7 +37,7 @@
                     {{ __('Description') }}
                 </label>
                 <textarea name="body" id="body" placeholder="{{ __('Description') }}"
-                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline h-32"></textarea>
+                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline h-32">{{ old('body') }}</textarea>
             </div>
             <input type="submit" value="{{ __('Create') }}"
                 class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">

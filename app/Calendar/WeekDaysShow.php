@@ -44,6 +44,7 @@ class WeekDaysShow
         // スケジュールデータを格納
             $userSchedules[] = [
                 'name' => $user->name,
+                'user_id' => $user->id,
                 'schedule' => $schedule,
             ];
         }

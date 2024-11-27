@@ -38,7 +38,7 @@ class WeekDaysShow
                 // 日付をキー、シフトを配列で格納
                 $schedule[$date] = $shifts->isNotEmpty()
                     ? $shifts->pluck('title')->toArray() // シフトタイトルを取得
-                    : ['シフトなし']; // シフトがなければ 'シフトなし'
+                    : []; // シフトがなければ 'シフトなし'
             }
 
         // スケジュールデータを格納

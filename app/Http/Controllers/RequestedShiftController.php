@@ -17,6 +17,7 @@ class RequestedShiftController extends Controller
     public function index(Request $request)
     {
         // 全てのユーザーとその関連するrequestedShiftsを取得
+        // ここはテーブル名を大文字にしなければいけないことに注意
         $users = User::with('RequestedShifts')->get();
         // リクエストから基準日を取得（デフォルトは現在日時）
         $date = json_decode($request->input('date'), true);

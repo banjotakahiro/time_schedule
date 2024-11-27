@@ -1,7 +1,11 @@
 <x-app-layout>
 
+@php
+  use Carbon\Carbon; // Carbonクラスをインポート
+@endphp
+
   <!DOCTYPE html>
-  <html lang="en">
+  <html lang="ja">
 
   <head>
     <meta charset="UTF-8">
@@ -34,11 +38,13 @@
             <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">名前</th>
             @php
               $startDate = $currentWeek['start']->copy(); // 開始日をコピーして変更を防ぐ
-              $day_of_week = ["月","火","水","木","金","土","日"]
+              $day_of_week = ["月","火","水","木","金","土","日"];
+              $week_day = [];
             @endphp
             @foreach (range(0, 6) as $day) <!-- 0から6までの範囲をループ -->
               @php
                 $date = $startDate->copy($day)->addDays($day);
+                $week_day[] = $date;
               @endphp
               <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">{{ $date->format('d日') }} {{ '(' . $day_of_week[$day] .')' }}</th>
             @endforeach
@@ -48,14 +54,19 @@
             @foreach ($users as $user)
               <tr>
                 <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user -> name }}</td>
-                @if (!is_null($user->Requested_shift))
-                  @foreach ($user->Requested_shift as $requested_shift)
-                    <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">{{ $requested_shift->title }}</td>
-                  @endforeach
+                @if (!is_null($user->requestedShifts))
+                    @foreach(range(0, 6) as $number)
+                      @foreach ($user->requestedShifts as $requested_shift)
+                          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">
+                            @if (Carbon::parse($requested_shift->start)->isSameDay($week_day[$number]))
+                              {{ $requested_shift -> title }}
+                            @endif
+                          </td>
+                      @endforeach
+                    @endforeach
                 @else
                     <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">シフトが見つかりません</td>
                 @endif
-
               </tr>
             @endforeach
 

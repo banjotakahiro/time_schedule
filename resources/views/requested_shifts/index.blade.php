@@ -42,14 +42,18 @@
           <tr>
             <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user['name'] }}</td>
             @foreach ($show_schedule['weekDays'] as $date)
+            <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">
               <a href="{{ route('requested_shifts.create', ['date' => $date, 'user_id' => $user['user_id']]) }}"
-                class="block w-full h-full">
-                <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">
-                  @foreach ($user['schedule'][$date] as $requested_shift)
-                    {{ $requested_shift}}
-                  @endforeach
-                </td>
+                class="block w-full h-full text-center">
+                @foreach ($user['schedule'][$date] as $requested_shift)
+                  @if($requested_shift == 'シフトなし')
+                    &nbsp;
+                  @else
+                    {{ $requested_shift }}
+                  @endif
+                @endforeach
               </a>
+            </td>
             @endforeach
           </tr>
           @endforeach

@@ -1,9 +1,5 @@
 <x-app-layout>
 
-@php
-  use Carbon\Carbon; // Carbonクラスをインポート
-@endphp
-
   <!DOCTYPE html>
   <html lang="ja">
 
@@ -36,40 +32,24 @@
         <thead>
           <tr>
             <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">名前</th>
-            @php
-              $startDate = $currentWeek['start']->copy(); // 開始日をコピーして変更を防ぐ
-              $day_of_week = ["月","火","水","木","金","土","日"];
-              $week_day = [];
-            @endphp
-            @foreach (range(0, 6) as $day) <!-- 0から6までの範囲をループ -->
-              @php
-                $date = $startDate->copy($day)->addDays($day);
-                $week_day[] = $date;
-              @endphp
-              <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">{{ $date->format('d日') }} {{ '(' . $day_of_week[$day] .')' }}</th>
+            @foreach ($show_schedule['weekDays'] as $number_count => $date)
+            <th class="border border-blue-300 px-4 py-2 bg-blue-200 text-blue-900">{{ substr($date, 8, 2) }} {{ '(' . $show_schedule['dayOfWeek'][$number_count] .')' }}</th>
             @endforeach
           </tr>
         </thead>
         <tbody>
-            @foreach ($users as $user)
-              <tr>
-                <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user -> name }}</td>
-                @if (!is_null($user->requestedShifts))
-                    @foreach(range(0, 6) as $number)
-                      @foreach ($user->requestedShifts as $requested_shift)
-                          <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">
-                            @if (Carbon::parse($requested_shift->start)->isSameDay($week_day[$number]))
-                              {{ $requested_shift -> title }}
-                            @endif
-                          </td>
-                      @endforeach
-                    @endforeach
-                @else
-                    <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">シフトが見つかりません</td>
-                @endif
-              </tr>
+          @foreach ($show_schedule['userSchedules'] as $user)
+          <tr>
+            <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user['name'] }}</td>
+            @foreach ($show_schedule['weekDays'] as $date)
+            <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">
+              @foreach ($user['schedule'][$date] as $requested_shift)
+              {{ $requested_shift }}
+              @endforeach
+            </td>
             @endforeach
-
+          </tr>
+          @endforeach
         </tbody>
       </table>
     </div>

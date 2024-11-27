@@ -9,16 +9,15 @@ use Illuminate\Http\Request;
 use App\Models\Requested_shift;
 use App\Models\User;
 use App\Calendar\CalendarGenerator;
-
+use App\Calendar\WeekDaysShow;
 
 class RequestedShiftController extends Controller
 {
     // indexページへ移動
     public function index(Request $request)
     {
-        // 全てのユーザーとその関連するrequestedShiftsを取得
-        // ここはテーブル名を大文字にしなければいけないことに注意
-        $users = User::with('RequestedShifts')->get();
+        // Userと紐づいているRequested_shiftsテーブルの処理はWeekDaysShow.phpで行っているため
+        // 下に記載してある返り値のshow_scheduleと一緒に格納されている
         // リクエストから基準日を取得（デフォルトは現在日時）
         $date = json_decode($request->input('date'), true);
         // CalendarGeneratorを初期化
@@ -37,10 +36,13 @@ class RequestedShiftController extends Controller
         else {
             $week = $calendar-> getCurrentWeek();
         }
+
+        $week_days_show = new WeekDaysShow() ;
+        $show_schdule = $week_days_show -> showSchedule($week);
         
         return view('requested_shifts.index', [
             'currentWeek' => $week,
-            'users' => $users,
+            'show_schedule' => $show_schdule,
         ]);
     }
     public function show($id)

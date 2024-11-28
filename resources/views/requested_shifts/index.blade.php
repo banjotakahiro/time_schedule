@@ -40,9 +40,12 @@
           <tr>
             <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user['name'] }}</td>
             @foreach ($show_schedule['weekDays'] as $date)
-            <td class="shift-cell border border-blue-300 px-4 py-2 bg-white hover:bg-blue-100 cursor-pointer">
-              <a href="{{ route('requested_shifts.create', ['date' => $date, 'user_id' => $user['user_id']]) }}"
-                class="block w-full h-full text-center">
+            <td class="shift-cell border border-blue-300 bg-white hover:bg-blue-100 cursor-pointer">
+              <button
+                type="button"
+                class="open-modal w-full h-full text-center flex items-center justify-center"
+                data-date="{{ $date }}"
+                data-user-id="{{ $user['user_id'] }}">
                 @foreach ($user['schedule'][$date] as $requested_shift)
                 @if($requested_shift == 'シフトなし')
                 &nbsp;
@@ -50,7 +53,7 @@
                 {{ $requested_shift }}
                 @endif
                 @endforeach
-              </a>
+              </button>
             </td>
             @endforeach
           </tr>
@@ -58,7 +61,13 @@
         </tbody>
       </table>
     </div>
-    @include('requested_shifts.create', ['date' => "2000-01-01", 'user_id' => 1])
+    <!-- モーダルのインクルード -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <!-- モーダルコンテンツ部分 -->
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
+            @include('requested_shifts.create', ['date' => $date, 'user_id' => $user_id])
+        </div>
+    </div>
   </body>
 
   </html>

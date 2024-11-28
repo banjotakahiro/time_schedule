@@ -56,7 +56,6 @@ class RequestedShiftController extends Controller
         // パラメータを受け取る
         $date = $request->query('date'); // クエリパラメータ 'date' を取得
         $user_id = $request->query('user_id'); // クエリパラメータ 'user_id' を取得
-        // 必要に応じて処理を実行（例: データベース検索）
         // ここでは単純にビューにデータを渡します
         return view('requested_shifts.create', compact('date', 'user_id'));
     }

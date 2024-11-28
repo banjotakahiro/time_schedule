@@ -8,13 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shift Schedule</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
   </head>
 
   <body class="bg-blue-50 min-h-screen p-5">
     <div class="container mx-auto bg-white shadow-lg rounded-lg p-6">
       <h1 class="text-3xl font-bold text-blue-700 mb-6 text-center">バイトシフト希望表</h1>
-
       <div class="flex justify-between mb-4">
         <form action="{{ route('requested_shifts.index') }}" method="GET">
           <input type="hidden" name="action" value="previousweek">
@@ -46,11 +44,11 @@
               <a href="{{ route('requested_shifts.create', ['date' => $date, 'user_id' => $user['user_id']]) }}"
                 class="block w-full h-full text-center">
                 @foreach ($user['schedule'][$date] as $requested_shift)
-                  @if($requested_shift == 'シフトなし')
-                    &nbsp;
-                  @else
-                    {{ $requested_shift }}
-                  @endif
+                @if($requested_shift == 'シフトなし')
+                &nbsp;
+                @else
+                {{ $requested_shift }}
+                @endif
                 @endforeach
               </a>
             </td>
@@ -60,7 +58,9 @@
         </tbody>
       </table>
     </div>
+    @include('requested_shifts.create', ['date' => "2000-01-01", 'user_id' => 1])
   </body>
 
   </html>
+  <script src="{{ asset('js/script.js') }}"></script>
 </x-app-layout>

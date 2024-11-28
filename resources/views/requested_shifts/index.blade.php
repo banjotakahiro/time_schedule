@@ -63,10 +63,14 @@
     </div>
     <!-- モーダルのインクルード -->
     <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <!-- モーダルコンテンツ部分 -->
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
-            @include('requested_shifts.create', ['date' => $date, 'user_id' => $user_id])
-        </div>
+      <!-- モーダルコンテンツ部分 -->
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
+        @php
+        $date = "2000-04-01";
+        $user_id = "1";
+        @endphp
+        @include('requested_shifts.create', ['date' => $date, 'user_id' => $user_id])
+      </div>
     </div>
   </body>
 

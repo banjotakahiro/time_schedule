@@ -40,7 +40,7 @@
           <tr>
             <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user['name'] }}</td>
             @foreach ($show_schedule['weekDays'] as $date)
-            <td class="shift-cell border border-blue-300 bg-white hover:bg-blue-100 cursor-pointer">
+            <td class="border border-blue-300 bg-white hover:bg-blue-100 cursor-pointer">
               <button
                 type="button"
                 class="open-modal w-full h-full text-center flex items-center justify-center"
@@ -68,11 +68,9 @@
     <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <!-- モーダルコンテンツ部分 -->
       <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
-        @php
-        $date = "2000-04-01";
-        $user_id = "1";
-        @endphp
-        @include('requested_shifts.create', ['date' => $date, 'user_id' => $user_id])
+        <div id="modal-content">
+            <!-- 動的に挿入されるコンテンツ -->
+        </div>
       </div>
     </div>
     

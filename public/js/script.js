@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const date = button.getAttribute('data-date'); // data-date の値を取得
             const userId = button.getAttribute('data-user-id'); // data-user-id の値を取得
 
+            console.log(date);
             console.log(userId);
             // モーダルを表示
             modal.classList.remove('hidden');

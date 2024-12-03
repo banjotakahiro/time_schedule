@@ -19,6 +19,11 @@ class DatabaseSeeder extends Seeder
                 \App\Models\Requested_shift::factory(10)
                     ->create(['user_id' => $user->id]);
             });
+
+        //JobSeeder(ジョブシーダークラス)の呼び出し
+        if (config('app.env') == 'local' ) {
+            $this->call(JobSeeder::class);
+        }
         }
     }
 }

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jobs', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table) {
             $table->id(); // ジョブID (主キー)
             $table->string('name', 255); // ジョブ名
             $table->text('description')->nullable(); // ジョブの詳細説明（NULL許容）
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jobs');
+        Schema::dropIfExists('roles');
     }
 };

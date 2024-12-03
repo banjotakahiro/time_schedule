@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
 
         //JobSeeder(ジョブシーダークラス)の呼び出し
         if (config('app.env') == 'local' ) {
-            $this->call(JobSeeder::class);
+            $this->call(RoleSeeder::class);
         }
         }
     }

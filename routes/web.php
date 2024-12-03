@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\RequestedShiftController;
-use App\Http\Controllers\JobController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,6 +41,6 @@ Route::resource('requested_shifts', RequestedShiftController::class)
     ->middleware('auth');
 
 // どんな仕事があるかの仕事のデータを登録するためのCRUD用のルーティング
-Route::resource('jobs', JobController::class)
+Route::resource('roles', RoleController::class)
     ->middleware('auth');
 

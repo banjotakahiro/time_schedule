@@ -65,8 +65,13 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\Company::class);
     }
 
-       public function requestedShifts()
+    public function requestedShifts()
     {
         return $this->hasMany(Requested_shift::class);
+    }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class);
     }
 }

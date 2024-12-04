@@ -8,13 +8,27 @@
                     <th scope="col" class="py-3 px-6">仕事詳細</th>
                     <th scope="col" class="py-3 px-6"></th>
                     <th scope="col" class="py-3 px-6"></th>
+                    <th scope="col" class="py-3 px-6"></th>
+                    <th scope="col" class="py-3 px-6"></th>
+                    <th scope="col" class="py-3 px-6"></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($roles as $role)
-                <tr id="role-row-{{ $role->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <td class="py-4 px-6 role-name-display">{{ $role->name }}</td>
-                    <td class="py-4 px-6 role-description-display">{{ $role->description }}</td>
+                @foreach ($employees as $employee)
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                    <td class="py-4 px-6 role-name-display">{{ $employee->user->name }}</td>
+                    <td class="py-4 px-6 role-description-display">{{ $employee->user->notes }}</td>
+                    @foreach (range(1, 3) as $number)
+                    <div class="mb-3">
+                        <label for="skill{{ $number }}">スキル{{ $number }}を選択:</label>
+                        <select name="skill{{ $number }}" id="skill{{ $number }}" class="form-select">
+                            <option value="">-- 選択してください --</option>
+                            @foreach ($roles as $role)
+                            <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endforeach
                     <td class="py-4 px-6">
                         <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 btn-edit "
                             data-id="{{ $role->id }}">
@@ -40,6 +54,8 @@
                 @endforeach
             </tbody>
         </table>
+
+        
         <table id="roles-table" class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-3">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>

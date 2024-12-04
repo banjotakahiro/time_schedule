@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Role;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
@@ -14,8 +15,9 @@ class RoleController extends Controller
      public function index()
      {
           // モデル名::テーブル全件取得
+          $employees = Employee::with(['user', 'skill1', 'skill2', 'skill3'])->get();
           $roles = Role::all();
-          return view('roles.index', ['roles' => $roles]);
+          return view('roles.index', ['roles' => $roles,'employees' => $employees]);
      }
 
      public function store(StoreRoleRequest $request)

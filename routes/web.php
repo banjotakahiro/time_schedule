@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\RequestedShiftController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,3 +45,6 @@ Route::resource('requested_shifts', RequestedShiftController::class)
 Route::resource('roles', RoleController::class)
     ->middleware('auth');
 
+// ユーザー情報にできる仕事や場所を設定するためのルーティング。上の仕事用のルーティングと同じページに記載
+Route::resource('employees', EmployeeController::class)
+    ->middleware('auth');

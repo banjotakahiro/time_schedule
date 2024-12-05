@@ -13,12 +13,18 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Userを10件作成し、Userをeachで繰り返す
-        if (config('app.env') == 'local') {
-            \App\Models\User::factory(2)->create()->each(function ($user) {
-                // Eventの作成時にuser_idに作成したユーザーIDを渡す
-                \App\Models\Requested_shift::factory(10)
-                    ->create(['user_id' => $user->id]);
-            });
+        // if (config('app.env') == 'local') {
+        //     \App\Models\User::factory(2)->create()->each(function ($user) {
+        //         // Eventの作成時にuser_idに作成したユーザーIDを渡す
+        //         \App\Models\Requested_shift::factory(10)
+        //             ->create(['user_id' => $user->id]);
+        //     });
+        // }
+        
+
+        //JobSeeder(ジョブシーダークラス)の呼び出し
+        if (config('app.env') == 'local' ) {
+            $this->call(EmployeeSeeder::class);
         }
     }
 }

@@ -117,4 +117,8 @@
     </div>
     <script src="{{ asset('js/role.js') }}"></script>
     <script src="{{ asset('js/employee.js') }}"></script>
+    <script>
+        // Blade の roles データを JavaScript に渡す
+        const roles = json_encode(roles);
+    </script>
 </x-app-layout>

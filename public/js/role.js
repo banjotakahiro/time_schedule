@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // ここから最初は、仕事の編集に関する項目を先に記述する
     // 編集ボタンの動作
-    // 編集ボタンを押したらinput欄と保存ボタンが現れる
     function handleEditButtonClick(event) {
         const roleId = event.target.dataset.id; // `this`ではなく`event.target`を使用
         const row = document.querySelector(`#role-row-${roleId}`);
@@ -20,18 +18,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // ボタンを保存モードに切り替え
         event.target.classList.add('hidden'); // 編集ボタンを非表示
-        row.querySelector('.btn-save').classList.remove('hidden'); // 保存ボタンを表示
+        row.querySelector('.role-btn-save').classList.remove('hidden'); // 保存ボタンを表示
     }
-
-    // 編集ボタンにイベントリスナーを設定
-    document.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', handleEditButtonClick);
-    });
-
-
     // 保存ボタンの動作
-    // inputの内容を保存する
-    // 保存ボタンのクリックイベント
     function handleSaveButtonClick(event) {
         const roleId = event.target.dataset.id;
         const row = document.querySelector(`#role-row-${roleId}`);
@@ -67,32 +56,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.querySelector('.role-description-display').innerHTML = updatedDesc;
 
                 // ボタンを編集モードに戻す
-                row.querySelector('.btn-save').classList.add('hidden'); // 保存ボタンを非表示
-                row.querySelector('.btn-edit').classList.remove('hidden'); // 編集ボタンを表示
+                row.querySelector('.role-btn-save').classList.add('hidden'); // 保存ボタンを非表示
+                row.querySelector('.role-btn-edit').classList.remove('hidden'); // 編集ボタンを表示
             })
             .catch(error => {
                 alert('エラーが発生しました: ' + error.message);
             });
     }
 
-    // 保存ボタンにイベントリスナーを設定
-    document.querySelectorAll('.btn-save').forEach(button => {
-        button.addEventListener('click', handleSaveButtonClick);
-    });
+// ここから下は新しいrolesを作成する際に必要となる処理！！
 
 
-    // ページ全体をリロードしないようにテーブルの一部分のみリロードできるようにする
+
     function reloadTable() {
-        // サーバーから最新のテーブルデータを取得
-        fetch('/roles') // ルートが適切に設定されていることを確認
+        fetch('/roles')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('テーブルの再読み込みに失敗しました');
                 }
-                return response.text(); // HTMLとしてレスポンスを取得
+                return response.text();
             })
             .then(html => {
-                // テーブル全体を再描画
                 const parser = new DOMParser();
                 const newTable = parser.parseFromString(html, 'text/html').querySelector('#roles-table');
                 const currentTable = document.querySelector('#roles-table');
@@ -107,29 +91,28 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // 再描画後にボタンのイベントリスナーを再設定
     function attachEventListeners() {
-        document.querySelectorAll('.btn-edit').forEach(button => {
+        document.querySelectorAll('.role-btn-edit').forEach(button => {
             button.addEventListener('click', handleEditButtonClick);
         });
 
-        document.querySelectorAll('.btn-save').forEach(button => {
+        document.querySelectorAll('.role-btn-save').forEach(button => {
             button.addEventListener('click', handleSaveButtonClick);
         });
     }
 
+    document.getElementById('create-role-button').addEventListener('click', () => {
+        const nameInput = document.getElementById('new-role-name').value.trim();
+        const descriptionInput = document.getElementById('new-role-description').value.trim();
 
-    document.querySelectorAll('.btn-save').forEach(button => {
-        button.addEventListener('click', function () {
-            const roleId = this.dataset.id;
-            console.log('Save button clicked for role ID:', roleId);
-            // 保存ボタンの処理をここに記述
-            handleSaveButtonClick
-        });
+        if (!nameInput || !descriptionInput) {
+            alert('役割名と説明を入力してください');
+            return;
+        }
+
+        createRole(nameInput, descriptionInput);
     });
 
-
-    // 役割を作成した後にテーブルを再読み込み
     function createRole(roleName, roleDescription) {
         fetch('/roles', {
             method: 'POST',
@@ -150,11 +133,9 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                 alert('役割が正常に作成されました');
-                // 入力フィールドの値をリセット
                 document.getElementById('new-role-name').value = '';
                 document.getElementById('new-role-description').value = '';
 
-                // テーブルを再描画
                 reloadTable();
             })
             .catch(error => {
@@ -162,19 +143,4 @@ document.addEventListener('DOMContentLoaded', function () {
                 alert('役割の作成中にエラーが発生しました');
             });
     }
-
-    // 例: ボタンクリック時に新しい役割を作成したあとに上の2つを使ってテーブルを再描画
-    document.getElementById('create-role-button').addEventListener('click', () => {
-        const nameInput = document.getElementById('new-role-name').value.trim();
-        const descriptionInput = document.getElementById('new-role-description').value.trim();
-
-        if (!nameInput || !descriptionInput) {
-            alert('役割名と説明を入力してください');
-            return;
-        }
-
-        createRole(nameInput, descriptionInput);
-    });
-
-    
 });

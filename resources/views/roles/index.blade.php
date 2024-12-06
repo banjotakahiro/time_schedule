@@ -28,14 +28,33 @@
                         <div class="employee-skills-display">
                             @if ($user->employee)
                             @foreach (range(1, 3) as $number)
-                            <span class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2">
-                                {{ $roles->firstWhere('id', $user->employee->{'skill' . $number})?->name ?? 'なし' }}
+                            @php
+                            $skillId = 'skill' . $number;
+                            $role = $roles->firstWhere('id', $user->employee->{$skillId}); // 該当する役割を取得
+                            if (!$role) {
+                            // $role が null の場合の処理
+                            $roleName = 'なし'; // デフォルトの名前
+                            $roleId = 'なし'; // デフォルトのID
+                            } else {
+                            $roleName = $role->name; // 役割名
+                            $roleId = $role->id; // 役割ID
+                            }
+
+                            $spanId = $user->id . '-' . $number; // spanタグのIDを生成
+                            @endphp
+                            <span
+                                class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2"
+                                id="{{ $spanId }}"
+                                data-id="{{ $roleId }}">
+                                {{ $roleName }}
                             </span>
                             @endforeach
                             @else
-                            <span class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2">なし</span>
+                            <span class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2" data-id="">なし</span>
                             @endif
                         </div>
+
+                        <div class="employee-skills-edit hidden"></div>
                     </td>
 
                     <!-- 編集ボタン -->
@@ -116,9 +135,10 @@
     </div>
     </div>
     <script src="{{ asset('js/role.js') }}"></script>
-    <script src="{{ asset('js/employee.js') }}"></script>
     <script>
         // Blade の roles データを JavaScript に渡す
-        const roles = json_encode(roles);
+        const roles = JSON.parse('{!! json_encode($roles) !!}');
     </script>
+    <script src="{{ asset('js/employee.js') }}"></script>
+
 </x-app-layout>

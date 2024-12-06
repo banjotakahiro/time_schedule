@@ -12,10 +12,15 @@ class EmployeeController extends Controller
         $employee = new Employee();
         $employee->notes = $request->notes;
         $employee->user_id = $request->user_id;
+        $update_skills= $request->update_skills;
+        $employee->skill1 = $update_skills["skill1"];
+        $employee->skill2 = $update_skills["skill2"];
+        $employee->skill3 = $update_skills["skill3"];
         $employee->save();
         // 必ずJSON形式のレスポンスを返す
         return response()->json([
             'success' => true,
+            'employee' => $employee
         ]);
     }
 
@@ -24,12 +29,16 @@ class EmployeeController extends Controller
         $employee = Employee::find($employee_Id);
         $employee->notes = $request->notes;
         $employee->user_id = $request->user_id;
-
+        $update_skills= $request->update_skills;
+        $employee->skill1 = $update_skills["skill1"];
+        $employee->skill2 = $update_skills["skill2"];
+        $employee->skill3 = $update_skills["skill3"];
         $employee->save();
 
             // 必ずJSON形式のレスポンスを返す
     return response()->json([
         'success' => true,
+        'employee' => $employee
     ]);
     }
 }

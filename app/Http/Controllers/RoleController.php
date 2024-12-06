@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Models\Employee;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
@@ -38,7 +37,6 @@ class RoleController extends Controller
           return response()->json([
                'success' => true,
                'message' => '新しい役割が作成されました',
-               'data' => $role,
           ]);
      }
 

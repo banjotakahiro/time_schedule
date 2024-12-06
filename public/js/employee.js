@@ -1,5 +1,5 @@
 // 編集ボタンの動作
-function handleEditButtonClick(event) {
+function EmployeeEditButtonClick(event) {
     const userId = event.target.dataset.id; // user IDを取得
     const row = document.querySelector(`#employee-row-${userId}`); // 行を取得
     // 表示されている説明文を非表示にし、編集用の<input>を生成
@@ -45,7 +45,7 @@ function handleEditButtonClick(event) {
 }
 
 // 保存ボタンの動作
-function handleSaveButtonClick(event) {
+function EmployeeSaveButtonClick(event) {
     // ユーザーIDと従業員IDを取得
     const userId = event.target.dataset.id; // user IDを取得
     const employeeId = event.target.dataset.employeeId || null; // employee IDを取得（nullに対応）
@@ -121,10 +121,10 @@ function handleSaveButtonClick(event) {
 document.addEventListener('DOMContentLoaded', function () {
     // 各ボタンにイベントリスナーを設定
     document.querySelectorAll('.employee-btn-edit').forEach(button => {
-        button.addEventListener('click', handleEditButtonClick);
+        button.addEventListener('click', EmployeeEditButtonClick);
     });
 
     document.querySelectorAll('.employee-btn-save').forEach(button => {
-        button.addEventListener('click', handleSaveButtonClick);
+        button.addEventListener('click', EmployeeSaveButtonClick);
     });
 });

@@ -1,5 +1,5 @@
 // 編集ボタンの動作
-function handleEditButtonClick(event) {
+function RoleEditButtonClick(event) {
     const roleId = event.target.dataset.id; // `this`ではなく`event.target`を使用
     const row = document.querySelector(`#role-row-${roleId}`);
 
@@ -20,7 +20,7 @@ function handleEditButtonClick(event) {
     row.querySelector('.role-btn-save').classList.remove('hidden'); // 保存ボタンを表示
 }
 // 保存ボタンの動作
-function handleSaveButtonClick(event) {
+function RoleSaveButtonClick(event) {
     const roleId = event.target.dataset.id;
     const row = document.querySelector(`#role-row-${roleId}`);
 
@@ -94,11 +94,11 @@ function reloadTable() {
 
 function attachEventListeners() {
     document.querySelectorAll('.role-btn-edit').forEach(button => {
-        button.addEventListener('click', handleEditButtonClick);
+        button.addEventListener('click', RoleEditButtonClick);
     });
 
     document.querySelectorAll('.role-btn-save').forEach(button => {
-        button.addEventListener('click', handleSaveButtonClick);
+        button.addEventListener('click', RoleSaveButtonClick);
     });
 }
 

@@ -1,4 +1,3 @@
-
 <div>
     <h1 class="text-2xl text-center font-semibold p-4">{{ __('Event Form') }}</h1>
 

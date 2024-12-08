@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateInformation_shiftRequest;
 use Illuminate\Http\Request;
 
 use App\Models\Information_shift;
+use App\Models\Role;
 
 use App\Calendar\CalendarGenerator;
 use App\Calendar\MonthDaysShow;
@@ -31,16 +32,15 @@ class InformationShiftController extends Controller
 
         // クエリパラメータ 'action' を取得
         $action = $request->query('action');
-        
+
         // アクションに応じた処理を実行
         if ($action === 'nextmonth') {
             // 実行したい関数を呼び出す
             $month = $calendar->nextMonth();
-        }elseif ($action == 'previousmonth') {
+        } elseif ($action == 'previousmonth') {
             $month = $calendar->previousMonth();
-        }
-        else {
-            $month = $calendar-> getCurrentMonth();
+        } else {
+            $month = $calendar->getCurrentMonth();
         }
 
         // 月のデータを取得
@@ -56,17 +56,36 @@ class InformationShiftController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        // どんな役職があるかの値を受け取る
+        $roles = Role::all();
+        // パラメータを受け取る
+        $date = $request->query('date'); // クエリパラメータ 'date' を取得
+        // ここでは単純にビューにデータを渡します
+        return view('information_shifts.create', compact('date', 'roles'));
     }
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreInformation_shiftRequest $request)
     {
-        //
+        dd($request->all()); // 送信されたデータを確認
+        $information_shift = new Information_shift();
+        $information_shift->date = $request->date;
+        $information_shift->start_time = $request->start_time;
+        $information_shift->end_time = $request->end_time;
+        $information_shift->location = $request->location;
+        $information_shift->skill1 = $request->skill1;
+        $information_shift->required_staff_skill1 = $request->required_staff_skill1;
+        $information_shift->skill2 = $request->skill2;
+        $information_shift->required_staff_skill2 = $request->required_staff_skill2;
+        $information_shift->skill3 = $request->skill3;
+        $information_shift->required_staff_skill3 = $request->required_staff_skill3;
+    
+        $information_shift->save();
+
+        return view('information_shifts.index');
     }
 
     /**

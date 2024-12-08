@@ -1,7 +1,7 @@
 // モーダルを開くロジック
-async function openModal(button, modal) {
-    const date = button.getAttribute('data-date'); // data-date の値を取得
-    const userId = button.getAttribute('data-user-id'); // data-user-id の値を取得
+async function handleClick(tdElement) {
+    const date = tdElement.getAttribute('data-date'); // data-date の値を取得
+    const userId = tdElement.getAttribute('data-user-id'); // data-user-id の値を取得
 
     try {
         // サーバーからデータを取得
@@ -13,11 +13,13 @@ async function openModal(button, modal) {
         modalContent.innerHTML = html;
 
         // モーダルを表示
+        const modal = document.getElementById('modal'); // モーダルのIDが必要
         modal.classList.remove('hidden');
     } catch (error) {
         console.error('エラー:', error); // エラーハンドリング
     }
 }
+
 
 // モーダルを閉じるロジック
 function closeModalOnBackgroundClick(modal, event) {

@@ -49,10 +49,12 @@
             $dateMonth = \Carbon\Carbon::parse($date)->format('Y-m');
             $isCurrentMonth = $currentMonthStart === $dateMonth;
             @endphp
-            <td class="h-24 border border-gray-300 text-left align-top bg-white hover:bg-blue-100 cursor-pointer relative">
+            <td
+              class="h-24 border border-gray-300 text-left align-top bg-white hover:bg-blue-100 cursor-pointer relative"
+              data-date="{{ $date }}"> <!-- カスタム属性で日付を埋め込む -->
               <!-- 日付部分 -->
               <div class="absolute top-1 right-2 font-bold text-sm 
-                {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
+                        {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
                 {{ \Carbon\Carbon::parse($date)->format('j') }}
               </div>
               <!-- イベント情報 -->
@@ -65,10 +67,23 @@
           </tr>
           @endforeach
         </tbody>
+
       </table>
 
     </div>
+
+    <!-- モーダルのインクルード -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <!-- モーダルコンテンツ部分 -->
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
+        <div id="modal-content">
+          <!-- 動的に挿入されるコンテンツ -->
+        </div>
+      </div>
+    </div>
+
   </body>
 
   </html>
+  <script src="{{ asset('js/information_shift.js') }}"></script>
 </x-app-layout>

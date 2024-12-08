@@ -18,7 +18,6 @@ function EmployeeEditButtonClick(event) {
         const setId = `${userId}-${number}`; // spanタグのIDを生成
         const span = document.getElementById(setId); // spanタグを取得
         const dataId = span ? span.getAttribute('data-id') : ""; // 属性 "data-id" の値を取得（存在しない場合は空文字）
-        console.log(dataId);
         // フォームのHTMLを生成
         return `
         <label for="skill${number}-${userId}" class="block text-sm font-medium text-gray-700">スキル${number}:</label>

@@ -84,6 +84,8 @@ function reloadTable() {
             const newTable = parser.parseFromString(html, 'text/html').querySelector('#roles-table');
             const currentTable = document.querySelector('#roles-table');
             currentTable.replaceWith(newTable);
+            attachEventListeners();
+
 
         })
         .catch(error => {

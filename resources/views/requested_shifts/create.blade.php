@@ -7,7 +7,7 @@
         @csrf
         <!-- Event Start -->
         <div class="my-2 text-slate-500 text-base leading-snug">
-            <label class="block text-gray-700 text-sm font-semibold mb-1" for="start">
+            <label class="block text-gray-700 text-sm font-semibold mb-1" for="start_date">
                 {{ __('Event Start') }}
             </label>
             <input type="date" name="start_date" id="start_date" value="{{ old('start_date', $date) }}"
@@ -18,7 +18,7 @@
 
         <!-- Event End -->
         <div class="my-2 text-slate-500 text-base leading-snug">
-            <label class="block text-gray-700 text-sm font-semibold mb-1" for="end">
+            <label class="block text-gray-700 text-sm font-semibold mb-1" for="end_date">
                 {{ __('Event End') }}
             </label>
             <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $date) }}"
@@ -51,4 +51,3 @@
             class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded focus:outline-none focus:shadow-outline">
     </form>
 </div>
-

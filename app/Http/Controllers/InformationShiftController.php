@@ -70,7 +70,6 @@ class InformationShiftController extends Controller
      */
     public function store(StoreInformation_shiftRequest $request)
     {
-        dd($request->all()); // 送信されたデータを確認
         $information_shift = new Information_shift();
         $information_shift->date = $request->date;
         $information_shift->start_time = $request->start_time;

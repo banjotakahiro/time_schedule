@@ -20,7 +20,6 @@ async function handleClick(tdElement) {
     }
 }
 
-
 // モーダルを閉じるロジック
 function closeModalOnBackgroundClick(modal, event) {
     if (event.target === modal) {
@@ -37,7 +36,7 @@ function initializeModal() {
     openModalButtons.forEach(button => {
         button.addEventListener('click', function (event) {
             event.preventDefault();
-            openModal(button, modal);
+            handleClick(button); // openModalをhandleClickに置き換え
         });
     });
 

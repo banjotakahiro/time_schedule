@@ -40,21 +40,22 @@
           <tr>
             <td class="border border-blue-300 px-4 py-2 bg-blue-100 text-blue-900">{{ $user['name'] }}</td>
             @foreach ($show_schedule['weekDays'] as $date)
-            <td
-              class="border border-blue-300 bg-white hover:bg-blue-100 cursor-pointer open-modal"
-              data-date="{{ $date }}"
-              data-user-id="{{ $user['user_id'] }}"
-              onclick="handleClick(this)">
-              @foreach ($user['schedule'][$date] as $requested_shift)
-              @if($requested_shift == 'シフトなし')
-              &nbsp;
-              @else
-              {{ $requested_shift }}
-              @endif
-              @endforeach
+            <td class="border border-blue-300 bg-white hover:bg-blue-100 cursor-pointer">
+              <button
+                type="button"
+                class="open-modal w-full h-full text-center flex items-center justify-center"
+                data-date="{{ $date }}"
+                data-user-id="{{ $user['user_id'] }}">
+                @foreach ($user['schedule'][$date] as $requested_shift)
+                @if($requested_shift == 'シフトなし')
+                &nbsp;
+                @else
+                {{ $requested_shift }}
+                @endif
+                @endforeach
+              </button>
             </td>
             @endforeach
-
           </tr>
           @endforeach
         </tbody>

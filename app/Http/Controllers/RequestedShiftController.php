@@ -73,7 +73,7 @@ class RequestedShiftController extends Controller
         $requested_shift->save();
 
         // 登録したらindexに戻る
-        return redirect('/requested_shifts');
+        return redirect('/information_shifts');
 
     }
 

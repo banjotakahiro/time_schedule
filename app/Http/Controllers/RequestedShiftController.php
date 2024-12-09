@@ -75,9 +75,6 @@ class RequestedShiftController extends Controller
         // 保存
         $requested_shift->save();
 
-        // 登録したらindexに戻る
-        return redirect('/requested_shifts');
-
     }
 
     public function edit($id)
@@ -99,7 +96,6 @@ class RequestedShiftController extends Controller
         $requested_shift->save();
 
         // 登録したらindexに戻る
-        return redirect('/requested_shifts');
     }
 
     public function destroy($id)

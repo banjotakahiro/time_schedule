@@ -15,8 +15,6 @@ async function handleClick(tdElement) {
 
         // モーダルを表示
         const modal = document.getElementById('modal');
-        console.log(modal);
-        
         modal.classList.remove('hidden');
     } catch (error) {
         console.error('エラー:', error); // エラーハンドリング

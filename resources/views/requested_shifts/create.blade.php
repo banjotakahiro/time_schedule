@@ -1,11 +1,4 @@
 <div>
-    <!-- Create Button -->
-    <div class="text-right mb-4">
-        <a href="{{ route('requested_shifts.create') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            {{ __('Create New Shift') }}
-        </a>
-    </div>
-
     <h1 class="text-2xl text-center font-semibold p-4">{{ __('Event Form') }}</h1>
 
     <x-validation-errors class="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mx-6" />

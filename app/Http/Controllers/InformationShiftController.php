@@ -84,7 +84,6 @@ class InformationShiftController extends Controller
     
         $information_shift->save();
 
-        return view('information_shifts.index');
     }
 
     /**

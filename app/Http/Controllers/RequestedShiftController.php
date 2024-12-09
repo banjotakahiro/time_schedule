@@ -53,16 +53,22 @@ class RequestedShiftController extends Controller
 
     public function create(Request $request) 
     {
-        // // パラメータを受け取る
-        // $date = $request->query('date'); // クエリパラメータ 'date' を取得
-        // $user_id = $request->query('user_id'); // クエリパラメータ 'user_id' を取得
-        // // ここでは単純にビューにデータを渡します
-        $date = "2024-12-09";
-        $user_id = 2;
+        // パラメータを受け取る
+        $date = $request->query('date'); // クエリパラメータ 'date' を取得
+        $user_id = $request->query('user_id'); // クエリパラメータ 'user_id' を取得
+        // ここでは単純にビューにデータを渡します
+        // $date = "2024-12-09";
+        // $user_id = 2;
 
         return view('requested_shifts.create', compact('date', 'user_id'));
     }
 
+    // このstorerequestがエラーできない原因になっている。form送信されるとその時点デバックを
+    // 返そうとしてもリロードされてしまうので
+    // 一度必ずモーダルが閉じてしまいエラーを表示することができなくなっている
+    // だから保存することはできるんだよね。非同期処理でデバックできなかったっけ？
+    // rolesみたいにやればいける気がしてきた！！koreyarou!
+    
     public function store(StoreRequestedShiftRequest $request) 
     {
         $requested_shift = new Requested_shift;
@@ -74,6 +80,10 @@ class RequestedShiftController extends Controller
         $requested_shift->user_id = $request->query('user_id');
         // 保存
         $requested_shift->save();
+        // modalの処理をしたい場合は下の処理を消したほうがいいです。
+        // でも、redirectができないです。
+
+        return redirect('/requested_shifts');
 
     }
 

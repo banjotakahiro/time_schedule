@@ -44,4 +44,5 @@ class Requested_shift extends Model
             ? (new Carbon($this->end))->toTimeString()
             : '';
     }
+    
 }

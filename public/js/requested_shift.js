@@ -6,7 +6,6 @@ async function handleClick(tdElement) {
     try {
         // サーバーからデータを取得
         const response = await fetch(`/requested_shifts/create?date=${date}&user_id=${userId}`);
-        console.log(response);
         const html = await response.text();
 
         // モーダルにデータを挿入

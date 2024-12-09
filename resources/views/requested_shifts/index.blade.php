@@ -61,6 +61,8 @@
         </tbody>
       </table>
     </div>
+
+
     <!-- モーダルのインクルード -->
     <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <!-- モーダルコンテンツ部分 -->

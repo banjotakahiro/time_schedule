@@ -9,10 +9,16 @@
         <div class="grid grid-cols-2 gap-4">
             <!-- Event Start -->
             <div>
-                <label for="date" class="block text-sm font-medium text-gray-700">{{ __('Date') }}</label>
+                <label for="date" class="block text-sm font-medium text-gray-700">{{ __('Start Date') }}</label>
                 <input type="date" name="date" id="date" value="{{ old('date', $date) }}"
                     class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
+            <div>
+                <label for="end_date" class="block text-sm font-medium text-gray-700">{{ __('End Date') }}</label>
+                <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}"
+                    class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
+            </div>
+
             <!-- Start and End Time in a Row -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -35,30 +41,44 @@
                 class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
         </div>
 
-        <!-- Skills -->
+        <!-- Color Selection -->
         <div>
-            <h2 class="text-sm font-semibold text-gray-700 mb-2">{{ __('Skill Requirements') }}</h2>
+            <label for="color" class="block text-sm font-medium text-gray-700">{{ __('Color') }}</label>
+            <select name="color" id="color"
+                class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
+                <option value="#ff0000" {{ old('color') == '#ff0000' ? 'selected' : '' }}>{{ __('Red') }}</option>
+                <option value="#0000ff" {{ old('color') == '#0000ff' ? 'selected' : '' }}>{{ __('Blue') }}</option>
+                <option value="#7fff00" {{ old('color') == '#7fff00' ? 'selected' : '' }}>{{ __('Yellow Green') }}</option>
+                <option value="#00ffff" {{ old('color') == '#00ffff' ? 'selected' : '' }}>{{ __('Cyan') }}</option>
+                <option value="#ffff00" {{ old('color') == '#ffff00' ? 'selected' : '' }}>{{ __('Yellow') }}</option>
+            </select>
+        </div>
+
+        <!-- Roles -->
+        <div>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">{{ __('Role Requirements') }}</h2>
             <div class="grid grid-cols-3 gap-4">
                 @for ($i = 1; $i <= 3; $i++)
                     <div class="p-2 border rounded-md bg-gray-50">
-                    <label for="skill{{ $i }}" class="block text-xs font-medium text-gray-700 mb-1">
-                        {{ __("Skill $i") }}
-                    </label>
-                    <select id="skill{{ $i }}" name="skill{{ $i }}"
-                        class="w-full border rounded-md p-2 text-xs focus:ring focus:ring-blue-200 focus:outline-none">
-                        <option value="">{{ __('-- Select --') }}</option>
-                        @foreach ($roles as $role)
-                        <option value="{{ $role->id }}">{{ $role->name }}</option>
-                        @endforeach
-                    </select>
-                    <label for="required_staff_skill{{ $i }}" class="block text-xs font-medium text-gray-700 mt-2">
-                        {{ __("Required Staff") }}
-                    </label>
-                    <input type="number" name="required_staff_skill{{ $i }}" id="required_staff_skill{{ $i }}"
-                        value="{{ old('required_staff_skill' . $i) }}"
-                        class="w-full border rounded-md p-2 text-xs focus:ring focus:ring-blue-200 focus:outline-none">
+                        <label for="role{{ $i }}" class="block text-xs font-medium text-gray-700 mb-1">
+                            {{ __("Role $i") }}
+                        </label>
+                        <select id="role{{ $i }}" name="role{{ $i }}"
+                            class="w-full border rounded-md p-2 text-xs focus:ring focus:ring-blue-200 focus:outline-none">
+                            <option value="">{{ __('-- Select --') }}</option>
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                        <label for="required_staff_role{{ $i }}" class="block text-xs font-medium text-gray-700 mt-2">
+                            {{ __("Required Staff") }}
+                        </label>
+                        <input type="number" name="required_staff_role{{ $i }}" id="required_staff_role{{ $i }}"
+                            value="{{ old('required_staff_role' . $i) }}"
+                            class="w-full border rounded-md p-2 text-xs focus:ring focus:ring-blue-200 focus:outline-none">
+                    </div>
+                @endfor
             </div>
-            @endfor
         </div>
 
         <!-- Submit -->

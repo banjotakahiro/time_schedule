@@ -15,7 +15,7 @@ class InformationShiftSeeder extends Seeder
     public function run()
     {
         // ランダムな数値を生成するヘルパー関数
-        $randomSkill = function () {
+        $randomrole = function () {
             return rand(5, 8);
         };
 
@@ -26,12 +26,12 @@ class InformationShiftSeeder extends Seeder
                 'start_time' => '09:00:00',
                 'end_time' => '18:00:00',
                 'location' => 'Office A',
-                'skill1' => $randomSkill(),
-                'required_staff_skill1' => rand(1, 5),
-                'skill2' => $randomSkill(),
-                'required_staff_skill2' => rand(1, 3),
-                'skill3' => null, // 3つ目のスキルは省略可能
-                'required_staff_skill3' => null,
+                'role1' => $randomrole(),
+                'required_staff_role1' => rand(1, 5),
+                'role2' => $randomrole(),
+                'required_staff_role2' => rand(1, 3),
+                'role3' => null, // 3つ目のスキルは省略可能
+                'required_staff_role3' => null,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -40,12 +40,12 @@ class InformationShiftSeeder extends Seeder
                 'start_time' => '10:00:00',
                 'end_time' => '19:00:00',
                 'location' => null, // 場所が未定の場合
-                'skill1' => $randomSkill(),
-                'required_staff_skill1' => rand(1, 4),
-                'skill2' => $randomSkill(),
-                'required_staff_skill2' => rand(1, 2),
-                'skill3' => $randomSkill(),
-                'required_staff_skill3' => rand(1, 3),
+                'role1' => $randomrole(),
+                'required_staff_role1' => rand(1, 4),
+                'role2' => $randomrole(),
+                'required_staff_role2' => rand(1, 2),
+                'role3' => $randomrole(),
+                'required_staff_role3' => rand(1, 3),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],
@@ -54,12 +54,12 @@ class InformationShiftSeeder extends Seeder
                 'start_time' => '08:00:00',
                 'end_time' => '17:00:00',
                 'location' => 'Warehouse B',
-                'skill1' => $randomSkill(),
-                'required_staff_skill1' => rand(1, 3),
-                'skill2' => null, // 2つ目のスキルは省略可能
-                'required_staff_skill2' => null,
-                'skill3' => $randomSkill(),
-                'required_staff_skill3' => rand(1, 2),
+                'role1' => $randomrole(),
+                'required_staff_role1' => rand(1, 3),
+                'role2' => null, // 2つ目のスキルは省略可能
+                'required_staff_role2' => null,
+                'role3' => $randomrole(),
+                'required_staff_role3' => rand(1, 2),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ],

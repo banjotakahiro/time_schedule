@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreInformation_shiftRequest;
 use App\Http\Requests\UpdateInformation_shiftRequest;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 use App\Models\Information_shift;
 use App\Models\Role;
@@ -68,22 +69,56 @@ class InformationShiftController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreInformation_shiftRequest $request)
+    public function store(Request $request)
     {
-        $information_shift = new Information_shift();
-        $information_shift->date = $request->date;
-        $information_shift->start_time = $request->start_time;
-        $information_shift->end_time = $request->end_time;
-        $information_shift->location = $request->location;
-        $information_shift->skill1 = $request->skill1;
-        $information_shift->required_staff_skill1 = $request->required_staff_skill1;
-        $information_shift->skill2 = $request->skill2;
-        $information_shift->required_staff_skill2 = $request->required_staff_skill2;
-        $information_shift->skill3 = $request->skill3;
-        $information_shift->required_staff_skill3 = $request->required_staff_skill3;
-    
-        $information_shift->save();
 
+        
+        // リクエストから値を取得
+        $date = $request->date; // 開始日
+        $endDate = $request->end_date; // 終了日
+        $startTime = $request->start_time; // 勤務開始時刻
+        $endTime = $request->end_time; // 勤務終了時刻
+        $location = $request->location; // 勤務場所
+        $color = $request->color; // 色
+        $role1 = $request->role1; // 必要スキル1
+        $requiredStaffRole1 = $request->required_staff_role1; // スキル1の必要人数
+        $role2 = $request->role2; // 必要スキル2
+        $requiredStaffRole2 = $request->required_staff_role2; // スキル2の必要人数
+        $role3 = $request->role3; // 必要スキル3
+        $requiredStaffRole3 = $request->required_staff_role3; // スキル3の必要人数
+
+        
+
+        // Carbonインスタンスを生成
+        $currentDate = Carbon::parse($date);
+        $endDate = Carbon::parse($endDate);
+
+        // 日付範囲をループで処理
+        while ($currentDate->lte($endDate)) {
+            // 重複データを検出して更新または作成
+            Information_shift::updateOrCreate(
+                ['date' => $currentDate->format('Y-m-d')], // 条件
+                [
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'location' => $location,
+                    'color' => $color,
+                    'role1' => $role1,
+                    'required_staff_role1' => $requiredStaffRole1,
+                    'role2' => $role2,
+                    'required_staff_role2' => $requiredStaffRole2,
+                    'role3' => $role3,
+                    'required_staff_role3' => $requiredStaffRole3,
+                ]
+            );
+
+            // 次の日へ進む
+            $currentDate->addDay();
+        }
+
+        // 処理結果を返す
+        return redirect()->route('information_shifts.index')
+            ->with('success', __('Shifts created or updated successfully for the date range.'));
     }
 
     /**

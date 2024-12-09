@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modal');
-    const openModalButtons = document.querySelectorAll('.open-modal'); // ボタンのクラスを基準に取得
+    const openModalButtons = document.querySelectorAll('.open-modal'); // cdボタンのクラスを基準に取得
 
     // モーダルを開く
     openModalButtons.forEach(button => {

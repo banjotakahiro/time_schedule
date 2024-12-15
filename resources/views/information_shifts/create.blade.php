@@ -10,12 +10,12 @@
             <!-- Event Start -->
             <div>
                 <label for="date" class="block text-sm font-medium text-gray-700">{{ __('Start Date') }}</label>
-                <input type="date" name="date" id="date" value="{{ old('date', $date) }}"
+                <input type="date" name="date" id="date" value="{{ old('date', $existingShift->date ?? $date) }}"
                     class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
             <div>
                 <label for="end_date" class="block text-sm font-medium text-gray-700">{{ __('End Date') }}</label>
-                <input type="date" name="end_date" id="end_date" value="{{ old('end_date') }}"
+                <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $existingShift->end_date ?? '') }}"
                     class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
             </div>
 
@@ -23,12 +23,12 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label for="start_time" class="block text-sm font-medium text-gray-700">{{ __('Start Time') }}</label>
-                    <input type="time" name="start_time" id="start_time" value="{{ old('start_time') }}"
+                    <input type="time" name="start_time" id="start_time" value="{{ old('start_time', $existingShift->start_time ?? '') }}"
                         class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
                 </div>
                 <div>
                     <label for="end_time" class="block text-sm font-medium text-gray-700">{{ __('End Time') }}</label>
-                    <input type="time" name="end_time" id="end_time" value="{{ old('end_time') }}"
+                    <input type="time" name="end_time" id="end_time" value="{{ old('end_time', $existingShift->end_time ?? '') }}"
                         class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
                 </div>
             </div>
@@ -37,7 +37,7 @@
         <!-- Location -->
         <div>
             <label for="location" class="block text-sm font-medium text-gray-700">{{ __('Location') }}</label>
-            <input type="text" name="location" id="location" placeholder="{{ __('Location') }}" value="{{ old('location') }}"
+            <input type="text" name="location" id="location" placeholder="{{ __('Location') }}" value="{{ old('location', $existingShift->location ?? '') }}"
                 class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
         </div>
 
@@ -46,11 +46,11 @@
             <label for="color" class="block text-sm font-medium text-gray-700">{{ __('Color') }}</label>
             <select name="color" id="color"
                 class="w-full border rounded-md p-2 text-sm focus:ring focus:ring-blue-200 focus:outline-none">
-                <option value="#ff0000" {{ old('color') == '#ff0000' ? 'selected' : '' }}>{{ __('Red') }}</option>
-                <option value="#0000ff" {{ old('color') == '#0000ff' ? 'selected' : '' }}>{{ __('Blue') }}</option>
-                <option value="#7fff00" {{ old('color') == '#7fff00' ? 'selected' : '' }}>{{ __('Yellow Green') }}</option>
-                <option value="#00ffff" {{ old('color') == '#00ffff' ? 'selected' : '' }}>{{ __('Cyan') }}</option>
-                <option value="#ffff00" {{ old('color') == '#ffff00' ? 'selected' : '' }}>{{ __('Yellow') }}</option>
+                <option value="#ffcccc" {{ old('color', $existingShift->color ?? '') == '#ffcccc' ? 'selected' : '' }}>{{ __('Light Red') }}</option>
+                <option value="#ccccff" {{ old('color', $existingShift->color ?? '') == '#ccccff' ? 'selected' : '' }}>{{ __('Light Blue') }}</option>
+                <option value="#dfffcc" {{ old('color', $existingShift->color ?? '') == '#dfffcc' ? 'selected' : '' }}>{{ __('Light Yellow Green') }}</option>
+                <option value="#ccffff" {{ old('color', $existingShift->color ?? '') == '#ccffff' ? 'selected' : '' }}>{{ __('Light Cyan') }}</option>
+                <option value="#ffffcc" {{ old('color', $existingShift->color ?? '') == '#ffffcc' ? 'selected' : '' }}>{{ __('Light Yellow') }}</option>
             </select>
         </div>
 
@@ -67,14 +67,16 @@
                             class="w-full border rounded-md p-2 text-xs focus:ring focus:ring-blue-200 focus:outline-none">
                             <option value="">{{ __('-- Select --') }}</option>
                             @foreach ($roles as $role)
-                                <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                <option value="{{ $role->id }}" {{ old("role$i", $existingShift->{'role' . $i} ?? '') == $role->id ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                </option>
                             @endforeach
                         </select>
                         <label for="required_staff_role{{ $i }}" class="block text-xs font-medium text-gray-700 mt-2">
                             {{ __("Required Staff") }}
                         </label>
                         <input type="number" name="required_staff_role{{ $i }}" id="required_staff_role{{ $i }}"
-                            value="{{ old('required_staff_role' . $i) }}"
+                            value="{{ old('required_staff_role' . $i, $existingShift->{'required_staff_role' . $i} ?? '') }}"
                             class="w-full border rounded-md p-2 text-xs focus:ring focus:ring-blue-200 focus:outline-none">
                     </div>
                 @endfor

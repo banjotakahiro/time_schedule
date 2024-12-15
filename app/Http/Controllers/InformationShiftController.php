@@ -23,6 +23,7 @@ class InformationShiftController extends Controller
         // 現在の日時を基準にカレンダーを生成
         $date = json_decode($request->input('date'), true);
         $calendar = new CalendarGenerator($date);
+        $information_shift = Information_shift::all();
 
         // Userと紐づいているRequested_shiftsテーブルの処理はWeekDaysShow.phpで行っているため
         // 下に記載してある返り値のshow_scheduleと一緒に格納されている
@@ -51,6 +52,7 @@ class InformationShiftController extends Controller
         return view('information_shifts.index', [
             'currentMonth' => $month,
             'show_month_schedule' => $show_month_schedule,
+            'information_shift' => $information_shift,
         ]);
     }
 
@@ -61,18 +63,27 @@ class InformationShiftController extends Controller
     {
         // どんな役職があるかの値を受け取る
         $roles = Role::all();
-        // パラメータを受け取る
-        $date = $request->query('date'); // クエリパラメータ 'date' を取得
-        // ここでは単純にビューにデータを渡します
-        return view('information_shifts.create', compact('date', 'roles'));
+
+        // クエリパラメータ 'date' を取得し、デフォルトで今日の日付を設定
+        $date = $request->query('date', now()->format('Y-m-d'));
+
+        // 該当日付のシフトデータを取得
+        $existingShift = Information_shift::where('date', $date)->first();
+
+        // ビューにデータを渡す
+        return view('information_shifts.create', [
+            'date' => $date,
+            'roles' => $roles,
+            'existingShift' => $existingShift,
+        ]);
     }
+
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreInformation_shiftRequest $request)
     {
 
-        
         // リクエストから値を取得
         $date = $request->date; // 開始日
         $endDate = $request->end_date; // 終了日
@@ -87,7 +98,7 @@ class InformationShiftController extends Controller
         $role3 = $request->role3; // 必要スキル3
         $requiredStaffRole3 = $request->required_staff_role3; // スキル3の必要人数
 
-        
+
 
         // Carbonインスタンスを生成
         $currentDate = Carbon::parse($date);
@@ -148,8 +159,5 @@ class InformationShiftController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Information_shift $information_shift)
-    {
-        //
-    }
+    public function destroy(Information_shift $information_shift) {}
 }

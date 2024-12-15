@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreRequestedShiftRequest extends FormRequest
+class StoreConfirmedShiftRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -22,9 +22,7 @@ class StoreRequestedShiftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'date' => 'required',
-            'start_time' => 'required',
-            'end_time' => 'required',
+            //
         ];
     }
 }

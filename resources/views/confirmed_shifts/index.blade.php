@@ -14,13 +14,13 @@
     <div class="container mx-auto bg-white shadow-lg rounded-lg p-6">
       <h1 class="text-3xl font-bold text-blue-700 mb-6 text-center">バイトシフト希望表</h1>
       <div class="flex justify-between items-center mb-4">
-        <form action="{{ route('information_shifts.index') }}" method="GET">
+        <form action="{{ route('confirmed_shifts.index') }}" method="GET">
           <input type="hidden" name="action" value="previousmonth">
           <input type="hidden" name="date" value="{{ json_encode($currentMonth) }}">
           <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">前の月</button>
         </form>
         <h2 class="text-xl font-semibold">月: {{ $currentMonth['start']->format('Y年n月') }}</h2>
-        <form action="{{ route('information_shifts.index') }}" method="GET">
+        <form action="{{ route('confirmed_shifts.index') }}" method="GET">
           <input type="hidden" name="action" value="nextmonth">
           <input type="hidden" name="date" value="{{ json_encode($currentMonth) }}">
           <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">次の月</button>
@@ -50,14 +50,12 @@
             $isCurrentMonth = $currentMonthStart === $dateMonth;
 
             // コレクションから該当日付のデータを取得
-            $shift = $information_shift->firstWhere('date', $date); // コレクションメソッド
-            $bgColor = $shift ? $shift['color'] : '#ffffff'; // デフォルト色を白に設定
-            $lineColor = $shift ? $shift['color'] : 'transparent'; // 線の色を設定
+            $shift = $confirmed_shift->firstWhere('date', $date); // コレクションメソッド
             @endphp
             <td
               class="h-24 border border-gray-300 text-left align-top hover:bg-blue-100 cursor-pointer relative"
-              data-date="{{ $date }}"
-              style="background-color: #ffffff; background-image: linear-gradient(to bottom, transparent 45%, {{ $lineColor }} 50%, transparent 55%);">
+              data-date="{{ $date }}">
+              
               <div class="absolute top-1 right-2 font-bold text-sm 
                   {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
                 {{ \Carbon\Carbon::parse($date)->format('j') }}
@@ -71,24 +69,10 @@
           </tr>
           @endforeach
         </tbody>
-
-
       </table>
-
     </div>
-
-    <!-- モーダルのインクルード -->
-    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <!-- モーダルコンテンツ部分 -->
-      <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
-        <div id="modal-content">
-          <!-- 動的に挿入されるコンテンツ -->
-        </div>
-      </div>
-    </div>
-
   </body>
 
   </html>
-  <script src="{{ asset('js/information_shift.js') }}"></script>
+  <script src="{{ asset('js/confirmed_shift.js') }}"></script>
 </x-app-layout>

@@ -25,8 +25,8 @@ class StoreInformation_shiftRequest extends FormRequest
         return [
             // 日付と時間
             'date' => ['required', 'date'], // 必須項目で有効な日付
-            'start_time' => ['required', 'date_format:H:i'], // HH:MM形式の時刻
-            'end_time' => ['required', 'date_format:H:i', 'after:start_time'], // 開始時刻より後
+            'start_time' => ['required'], // HH:MM形式の時刻
+            'end_time' => ['required', 'after:start_time'], // 開始時刻より後
 
             // ロケーション
             'location' => ['required', 'string', 'max:255'], // 必須、文字列、最大255文字
@@ -40,4 +40,5 @@ class StoreInformation_shiftRequest extends FormRequest
             'required_staff_skill3' => ['nullable', 'integer', 'min:1'],
         ];
     }
+
 }

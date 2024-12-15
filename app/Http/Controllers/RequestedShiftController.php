@@ -69,14 +69,13 @@ class RequestedShiftController extends Controller
     // だから保存することはできるんだよね。非同期処理でデバックできなかったっけ？
     // rolesみたいにやればいける気がしてきた！！koreyarou!
     
-    public function store(StoreRequestedShiftRequest $request) 
+    public function store(Request $request) 
     {
         $requested_shift = new Requested_shift;
 
-        $requested_shift->start = $request->start;
-        $requested_shift->end = $request->end;
-        $requested_shift->title = $request->title;
-        $requested_shift->body = $request->body;
+        $requested_shift->date = $request->date;
+        $requested_shift->start_time = $request->start_time;
+        $requested_shift->end_time = $request->end_time;
         $requested_shift->user_id = $request->query('user_id');
         // 保存
         $requested_shift->save();

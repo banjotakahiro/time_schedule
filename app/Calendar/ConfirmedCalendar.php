@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Calendar;
 
 use App\Models\Requested_shift;
@@ -36,16 +37,14 @@ class ConfirmedCalendar
         // 指定された月のリクエストシフトと情報シフトを取得
         $requestedShifts = Requested_shift::where('date', 'like', "{$this->month}%")->get();
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
-
         // 各日程ごとに情報シフトを処理
         foreach ($informationShifts as $infoShift) {
             // その日のリクエストを取得
             $requestsForDay = $requestedShifts->filter(function ($reqShift) use ($infoShift) {
                 return $infoShift->date === $reqShift->date &&
-                       $infoShift->start_time >= $reqShift->start_time &&
-                       $infoShift->end_time <= $reqShift->end_time;
+                    $infoShift->start_time >= $reqShift->start_time &&
+                    $infoShift->end_time <= $reqShift->end_time;
             });
-
             if ($requestsForDay->isEmpty()) {
                 // 誰も申請していない場合
                 $finalShifts[] = [
@@ -79,7 +78,7 @@ class ConfirmedCalendar
 
         // 二人以上申請がある日を埋める処理
         $finalShifts = $this->processMultipleApplicants($finalShifts, $unprocessedShifts);
-
+        dd($finalShifts);
         return $finalShifts;
     }
 

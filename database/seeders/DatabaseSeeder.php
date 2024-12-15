@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
 
         //JobSeeder(ジョブシーダークラス)の呼び出し
         if (config('app.env') == 'local' ) {
-            $this->call(InformationShiftSeeder::class);
+            $this->call(RequestedShiftSeeder::class);
         }
     }
 }

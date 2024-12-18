@@ -10,6 +10,8 @@ use App\Calendar\CalendarGenerator;
 use App\Calendar\MonthDaysShow;
 use App\Calendar\ConfirmedCalendar;
 
+use Carbon\Carbon;
+
 class ConfirmedShiftController extends Controller
 {
     /**
@@ -17,16 +19,21 @@ class ConfirmedShiftController extends Controller
      */
     public function index(Request $request)
     {
-        // 現在の日時を基準にカレンダーを生成
-        $date = json_decode($request->input('date'), true);
-        $calendar = new CalendarGenerator($date);
-
         // Userと紐づいているRequested_shiftsテーブルの処理はWeekDaysShow.phpで行っているため
         // 下に記載してある返り値のshow_scheduleと一緒に格納されている
         // リクエストから基準日を取得（デフォルトは現在日時）
-        $date = json_decode($request->input('date'), true);
+        $month = json_decode($request->input('current_date'), true);
+
+        // デフォルト値を設定する条件分岐
+        if (empty($month) || !isset($month['start']) || !isset($month['end'])) {
+            // デフォルト値をセット（現在の月の開始日と終了日を使用）
+            $month = [
+                'start' => Carbon::now()->startOfMonth()->setTimezone('Asia/Tokyo'),
+                'end' => Carbon::now()->endOfMonth()->setTimezone('Asia/Tokyo'),
+            ];
+        }
         // CalendarGeneratorを初期化
-        $calendar = new CalendarGenerator($date);
+        $calendar = new CalendarGenerator($month);
 
         // クエリパラメータ 'action' を取得
         $action = $request->query('action');
@@ -40,18 +47,9 @@ class ConfirmedShiftController extends Controller
         } else {
             $month = $calendar->getCurrentMonth();
         }
-        // 配列から 'start' キーの Carbon オブジェクトを取得
-        $start = $month['start'];
+        $confirmed_shifts = ConfirmedShift::all();
 
-        // 'start' の Carbon オブジェクトを 'Y-m' 形式で整形
-        $formattedMonth = $start->format('Y-m');
-
-        // ConfirmedShiftの関数を呼び出してシフト表を取得
-        $create_shifts = new ConfirmedCalendar($formattedMonth);
-
-        $final_shifts = $create_shifts->generateShiftPlan(); // 2024年12月のシフト表を生成
-
-        dd($final_shifts);
+        // $confirmed_shifts = ConfirmedShift::all();
         // 月のデータを取得
         $month_days_show = new MonthDaysShow();
         $show_month_schedule = $month_days_show->show_month_schedule($calendar->getCurrentMonth());
@@ -59,6 +57,7 @@ class ConfirmedShiftController extends Controller
         return view('confirmed_shifts.index', [
             'currentMonth' => $month,
             'show_month_schedule' => $show_month_schedule,
+            'confirmed_shifts' => $confirmed_shifts,
         ]);
     }
 
@@ -73,9 +72,37 @@ class ConfirmedShiftController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreConfirmedShiftRequest $request)
+    public function store(Request $request)
     {
-        //
+        $month = json_decode($request->input('date'), true);
+        $month['start'] = Carbon::parse($month['start'])->setTimezone('Asia/Tokyo');
+        $month['end'] = Carbon::parse($month['end'])->setTimezone('Asia/Tokyo');
+        $start = $month['start'];
+        $formattedMonth = Carbon::parse($start)->format('Y-m');
+        $create_shifts = new ConfirmedCalendar($formattedMonth);
+        $final_shifts = $create_shifts->generateShiftPlan(); // 2024年12月のシフト表を生成
+
+        $confirmed_shift = new Confirmedshift;
+        dd($final_shifts);
+        foreach ($final_shifts as $final_shift) {
+            // 新しい ConfirmedShift モデルのインスタンスを作成
+            $confirmed_shift = new ConfirmedShift();
+
+            // データをモデルのプロパティにセット
+            $confirmed_shift->date = $final_shift['date'];
+            $confirmed_shift->start_time = $final_shift['start_time'];
+            $confirmed_shift->end_time = $final_shift['end_time'];
+            $confirmed_shift->status = $final_shift['status'];
+            $confirmed_shift->user_id = $final_shift['user_id'];
+
+            // 保存
+            $confirmed_shift->save();
+        }
+
+        // modalの処理をしたい場合は下の処理を消したほうがいいです。
+        // でも、redirectができないです。
+
+        return redirect('/confirmed_shifts');
     }
 
     /**

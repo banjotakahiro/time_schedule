@@ -49,27 +49,53 @@
             $dateMonth = \Carbon\Carbon::parse($date)->format('Y-m');
             $isCurrentMonth = $currentMonthStart === $dateMonth;
 
-            // コレクションから該当日付のデータを取得
-            $shift = $confirmed_shift->firstWhere('date', $date); // コレクションメソッド
+            // 配列から該当日付のデータを取得
+            $shift = null;
+            foreach ($confirmed_shifts as $item) {
+            if ($item->date === $date) {
+            $shift = $item;
+            break;
+            }
+            }
             @endphp
+
             <td
               class="h-24 border border-gray-300 text-left align-top hover:bg-blue-100 cursor-pointer relative"
               data-date="{{ $date }}">
-              
+
+              <!-- 日付を表示 -->
               <div class="absolute top-1 right-2 font-bold text-sm 
-                  {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
+          {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
                 {{ \Carbon\Carbon::parse($date)->format('j') }}
               </div>
+
               @if ($isCurrentMonth)
-              <div class="mt-6 text-sm text-gray-600"></div>
-              <div class="text-xs text-gray-500"></div>
+              <!-- シフト情報の表示 -->
+              <div class="mt-6 text-sm text-gray-600">
+                @if ($shift)
+                <p>ユーザーID: {{ $shift->user_id}}</p>
+                <p>時間: {{ \Carbon\Carbon::parse($shift -> start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift -> end_time)->format('H:i') }}</p>
+                <p>状態: {{ $shift -> status }}</p>
+                @endif
+              </div>
               @endif
             </td>
             @endforeach
           </tr>
           @endforeach
         </tbody>
+
       </table>
+    </div>
+    <div class="absolute bottom-4 right-4">
+      <form action="{{ route('confirmed_shifts.store') }}" method="POST" id="createShiftForm">
+        @csrf
+        <input type="hidden" name="date" value="{{ json_encode($currentMonth) }}">
+        <!-- CREATE ボタン -->
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600">
+          CREATE
+        </button>
+      </form>
     </div>
   </body>
 

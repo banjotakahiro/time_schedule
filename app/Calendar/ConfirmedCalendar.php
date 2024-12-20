@@ -93,7 +93,6 @@ class ConfirmedCalendar
 
         // 二人以上申請がある日を埋める処理
         $finalShifts = $this->processMultipleApplicants($finalShifts, $unprocessedShifts, $informationShifts);
-        dd($finalShifts);
         return $finalShifts;
     }
 

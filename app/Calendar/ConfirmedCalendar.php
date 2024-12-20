@@ -59,13 +59,16 @@ class ConfirmedCalendar
             } elseif ($requestsForDay->count() === 1) {
                 // 一人だけ申請している場合
                 $singleRequest = $requestsForDay->first();
-                if ($this->isRoleMatch($infoShift, $singleRequest)) {
+                $isRoleMatchResult = $this->isRoleMatch($infoShift, $singleRequest);
+
+                if ($isRoleMatchResult['is_match']) {
                     $finalShifts[] = [
                         'date' => $infoShift->date,
                         'start_time' => $infoShift->start_time,
                         'end_time' => $infoShift->end_time,
                         'user_id' => $singleRequest->user_id,
-                        'status' => 'confirmed_single', // 一人だけで確定
+                        'status' => 'confirmed_single',
+                        'matched_roles' => $isRoleMatchResult['matched_roles'], // 一致した役割を格納
                     ];
                 } else {
                     $finalShifts[] = [
@@ -74,6 +77,7 @@ class ConfirmedCalendar
                         'end_time' => $infoShift->end_time,
                         'user_id' => null,
                         'status' => 'role_mismatch',
+                        'matched_roles' => [] // 一致なし
                     ];
                 }
             } else {
@@ -89,6 +93,7 @@ class ConfirmedCalendar
 
         // 二人以上申請がある日を埋める処理
         $finalShifts = $this->processMultipleApplicants($finalShifts, $unprocessedShifts, $informationShifts);
+        dd($finalShifts);
         return $finalShifts;
     }
 
@@ -135,12 +140,15 @@ class ConfirmedCalendar
                 return $userShiftCounts[$userId] ?? 0;
             })->first();
 
+            $isRoleMatchResult = $this->isRoleMatch($infoShift, (object)['user_id' => $selectedUser]);
+
             $finalShifts[] = [
                 'date' => $shift['date'],
                 'start_time' => $shift['start_time'],
                 'end_time' => $shift['end_time'],
                 'user_id' => $selectedUser,
-                'status' => 'processed_from_multiple', // 複数から選ばれた場合
+                'status' => 'processed_from_multiple',
+                'matched_roles' => $isRoleMatchResult['matched_roles'], // 一致した役割
             ];
 
             // ユーザーのシフト数を更新
@@ -156,14 +164,18 @@ class ConfirmedCalendar
      * @param object $requestShift リクエストシフトデータ (user_id を含む)
      * @return bool
      */
-    private function isRoleMatch($infoShift, $requestShift): bool
+    private function isRoleMatch($infoShift, $requestShift): array
     {
         $requiredRoles = [$infoShift->role1, $infoShift->role2, $infoShift->role3];
-
-        // ユーザーの役割を取得 (仮の例として直接取得)
         $userRoles = $this->getUserRoles($requestShift->user_id);
 
-        return !empty(array_intersect($requiredRoles, $userRoles));
+        // 役割の一致部分を取得
+        $matchedRoles = array_intersect($requiredRoles, $userRoles);
+
+        return [
+            'is_match' => !empty($matchedRoles),
+            'matched_roles' => $matchedRoles
+        ];
     }
 
     /**

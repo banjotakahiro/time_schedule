@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('confirmed_shifts', function (Blueprint $table) {
-            $table->string('status')->after('end_time')->default('pending')->comment('シフトのステータス');
+            // statusカラムを追加（例: varchar型で最大255文字）
+            $table->string('status', 255)->nullable()->after('user_id');
         });
     }
 
@@ -22,7 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('confirmed_shifts', function (Blueprint $table) {
+            // statusカラムを削除
             $table->dropColumn('status');
-            });
+        });
     }
 };

@@ -17,7 +17,7 @@ class RequestedShiftSeeder extends Seeder
                 // 日付範囲（12月10日から12月21日）
         $dates = [];
         for ($i = 10; $i <= 21; $i++) {
-            $dates[] = Carbon::create(2024, 01, $i)->format('Y-m-d');
+            $dates[] = Carbon::create(2024, 12, $i)->format('Y-m-d');
         }
 
         // データを挿入

@@ -79,21 +79,31 @@ class ConfirmedShiftController extends Controller
         $month['end'] = Carbon::parse($month['end'])->setTimezone('Asia/Tokyo');
         $start = $month['start'];
         $formattedMonth = Carbon::parse($start)->format('Y-m');
+
+        // Carbonで月の開始日と終了日を取得
+        $startOfMonth = Carbon::parse($formattedMonth)->startOfMonth(); // 月の開始日
+        $endOfMonth = Carbon::parse($formattedMonth)->endOfMonth();     // 月の終了日
+        
+        // 対象月の既存データを削除
+        ConfirmedShift::whereBetween('date', [$startOfMonth, $endOfMonth])->delete();
+
+        // シフト表を生成
         $create_shifts = new ConfirmedCalendar($formattedMonth);
         $final_shifts = $create_shifts->generateShiftPlan(); // 2024年12月のシフト表を生成
 
-        $confirmed_shift = new Confirmedshift;
-        dd($final_shifts);
+        // シフトデータを挿入
+        $confirmed_shift = new ConfirmedShift;
         foreach ($final_shifts as $final_shift) {
             // 新しい ConfirmedShift モデルのインスタンスを作成
             $confirmed_shift = new ConfirmedShift();
 
             // データをモデルのプロパティにセット
+            $confirmed_shift->user_id = $final_shift['user_id'];
+            $confirmed_shift->status = $final_shift['status'];
+            $confirmed_shift->role_id = 5;
             $confirmed_shift->date = $final_shift['date'];
             $confirmed_shift->start_time = $final_shift['start_time'];
             $confirmed_shift->end_time = $final_shift['end_time'];
-            $confirmed_shift->status = $final_shift['status'];
-            $confirmed_shift->user_id = $final_shift['user_id'];
 
             // 保存
             $confirmed_shift->save();

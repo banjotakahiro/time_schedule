@@ -10,7 +10,7 @@ use App\Models\User;
 // ユーザーが登録したシフトデータを表示させる処理を行っています
 class WeekDaysShow
 {
-    public function showSchedule($currentWeek)
+    public function show_week_schedule($currentWeek)
     {
         // 現在の週の開始日と終了日
         $startOfWeek = $currentWeek['start']->copy();

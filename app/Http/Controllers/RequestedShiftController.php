@@ -38,7 +38,7 @@ class RequestedShiftController extends Controller
         }
 
         $week_days_show = new WeekDaysShow() ;
-        $show_schdule = $week_days_show -> showSchedule($week);
+        $show_schdule = $week_days_show -> show_week_schedule($week);
         
         return view('requested_shifts.index', [
             'currentWeek' => $week,
@@ -57,22 +57,31 @@ class RequestedShiftController extends Controller
         $date = $request->query('date'); // クエリパラメータ 'date' を取得
         $user_id = $request->query('user_id'); // クエリパラメータ 'user_id' を取得
         // ここでは単純にビューにデータを渡します
+        // $date = "2024-12-09";
+        // $user_id = 2;
+
         return view('requested_shifts.create', compact('date', 'user_id'));
     }
 
-    public function store(StoreRequestedShiftRequest $request) 
+    // このstorerequestがエラーできない原因になっている。form送信されるとその時点デバックを
+    // 返そうとしてもリロードされてしまうので
+    // 一度必ずモーダルが閉じてしまいエラーを表示することができなくなっている
+    // だから保存することはできるんだよね。非同期処理でデバックできなかったっけ？
+    // rolesみたいにやればいける気がしてきた！！koreyarou!
+    
+    public function store(Request $request) 
     {
         $requested_shift = new Requested_shift;
 
-        $requested_shift->start = $request->start;
-        $requested_shift->end = $request->end;
-        $requested_shift->title = $request->title;
-        $requested_shift->body = $request->body;
+        $requested_shift->date = $request->date;
+        $requested_shift->start_time = $request->start_time;
+        $requested_shift->end_time = $request->end_time;
         $requested_shift->user_id = $request->query('user_id');
         // 保存
         $requested_shift->save();
+        // modalの処理をしたい場合は下の処理を消したほうがいいです。
+        // でも、redirectができないです。
 
-        // 登録したらindexに戻る
         return redirect('/requested_shifts');
 
     }
@@ -96,7 +105,6 @@ class RequestedShiftController extends Controller
         $requested_shift->save();
 
         // 登録したらindexに戻る
-        return redirect('/requested_shifts');
     }
 
     public function destroy($id)

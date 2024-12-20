@@ -105,6 +105,7 @@ class ConfirmedCalendar
      * @param \Illuminate\Support\Collection $informationShifts 情報シフトデータ
      * @return array
      */
+
     private function processMultipleApplicants(array $finalShifts, array $unprocessedShifts, $informationShifts): array
     {
         // ユーザーごとの既存シフト数を計算
@@ -121,7 +122,8 @@ class ConfirmedCalendar
 
             // 条件を満たすユーザーをフィルタリング
             $validApplicants = collect($shift['applicants'])->filter(function ($userId) use ($infoShift) {
-                return $this->isRoleMatch($infoShift, (object)['user_id' => $userId]);
+                $isRoleMatchResult = $this->isRoleMatch($infoShift, (object)['user_id' => $userId]);
+                return $isRoleMatchResult['is_match']; // 一致する場合のみ有効
             });
 
             if ($validApplicants->isEmpty()) {
@@ -162,7 +164,7 @@ class ConfirmedCalendar
      *
      * @param Information_shift $infoShift 情報シフトデータ
      * @param object $requestShift リクエストシフトデータ (user_id を含む)
-     * @return bool
+     * @return array
      */
     private function isRoleMatch($infoShift, $requestShift): array
     {
@@ -179,10 +181,10 @@ class ConfirmedCalendar
     }
 
     /**
-     * ユーザーの役割を取得 (ダミー関数: 実際にはDBから取得する必要あり)
+     * ユーザーの役割を取得するメソッド
      *
-     * @param int $userId ユーザーID
-     * @return array ユーザーが持つ役割IDの配列
+     * @param int $userId
+     * @return array
      */
     private function getUserRoles(int $userId): array
     {

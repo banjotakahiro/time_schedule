@@ -40,24 +40,28 @@
           </tr>
         </thead>
         <tbody>
+          
           @foreach ($show_month_schedule['monthWeeks'] as $week)
           <tr>
             @foreach ($week as $date)
             @php
+
+
             // 現在の月を判定
             $currentMonthStart = $currentMonth['start']->format('Y-m');
             $dateMonth = \Carbon\Carbon::parse($date)->format('Y-m');
             $isCurrentMonth = $currentMonthStart === $dateMonth;
 
             // 配列から該当日付のデータを取得
-            $shift = null;
+            $shiftsForDate = [];
             foreach ($confirmed_shifts as $item) {
             if ($item->date === $date) {
-            $shift = $item;
-            break;
+            $shiftsForDate[] = $item;
             }
             }
+
             @endphp
+
 
             <td
               class="h-24 border border-gray-300 text-left align-top hover:bg-blue-100 cursor-pointer relative"
@@ -65,17 +69,22 @@
 
               <!-- 日付を表示 -->
               <div class="absolute top-1 right-2 font-bold text-sm 
-          {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
+  {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
                 {{ \Carbon\Carbon::parse($date)->format('j') }}
               </div>
-
               @if ($isCurrentMonth)
               <!-- シフト情報の表示 -->
               <div class="mt-6 text-sm text-gray-600">
-                @if ($shift)
-                <p>ユーザーID: {{ $shift->user_id}}</p>
-                <p>時間: {{ \Carbon\Carbon::parse($shift -> start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift -> end_time)->format('H:i') }}</p>
-                <p>状態: {{ $shift -> status }}</p>
+                @if (!empty($shiftsForDate))
+                @foreach ($shiftsForDate as $shift)
+                <p>ユーザーID: {{ $shift->user_id ?? '未割り当て' }}</p>
+                <p>時間: {{ \Carbon\Carbon::parse($shift->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->end_time)->format('H:i') }}</p>
+                <p>役割: {{ $shift->role ?? '未設定' }}</p>
+                <p>状態: {{ $shift->status }}</p>
+                <hr class="my-1 border-gray-300">
+                @endforeach
+                @else
+                <p>シフトなし</p>
                 @endif
               </div>
               @endif

@@ -39,17 +39,14 @@ class ConfirmedCalendar
         // 指定された月のリクエストシフトと情報シフトを取得
         $requestedShifts = Requested_shift::where('date', 'like', "{$this->month}%")->get();
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
-        
+
         // 各日程ごとに情報シフトを処理
         foreach ($informationShifts as $infoShift) {
-            // 各役割と必要人数を取得
             $rolesWithCounts = [
                 ['role' => $infoShift->role1, 'count' => $infoShift->required_staff_role1],
                 ['role' => $infoShift->role2, 'count' => $infoShift->required_staff_role2],
                 ['role' => $infoShift->role3, 'count' => $infoShift->required_staff_role3],
             ];
-            
-
 
             foreach ($rolesWithCounts as $roleInfo) {
                 if (!$roleInfo['role'] || $roleInfo['count'] <= 0) {
@@ -65,51 +62,52 @@ class ConfirmedCalendar
 
                 $remainingCount = $roleInfo['count'];
 
-                if ($requestsForRole->isEmpty()) {
+                if ($requestsForRole->count() === 1) {
+                    // 一人だけ申請がある場合
+                    $singleRequest = $requestsForRole->first();
+                    $finalShifts[] = [
+                        'date' => $infoShift->date,
+                        'start_time' => $infoShift->start_time,
+                        'end_time' => $infoShift->end_time,
+                        'user_id' => $singleRequest->user_id,
+                        'role' => $roleInfo['role'],
+                        'status' => 'confirmed_single',
+                    ];
+                } elseif ($requestsForRole->count() > 1) {
+                    // 二人以上申請がある場合
+                    $selectedUsers = $requestsForRole->pluck('user_id')->take($remainingCount);
+
+                    foreach ($selectedUsers as $userId) {
+                        $finalShifts[] = [
+                            'date' => $infoShift->date,
+                            'start_time' => $infoShift->start_time,
+                            'end_time' => $infoShift->end_time,
+                            'user_id' => $userId,
+                            'role' => $roleInfo['role'],
+                            'status' => 'processed_from_multiple',
+                        ];
+                        $remainingCount--;
+
+                        if ($remainingCount <= 0) {
+                            break;
+                        }
+                    }
+                } else {
+                    // 必要人数を満たせなかった場合
                     for ($i = 0; $i < $remainingCount; $i++) {
                         $finalShifts[] = [
                             'date' => $infoShift->date,
                             'start_time' => $infoShift->start_time,
                             'end_time' => $infoShift->end_time,
                             'user_id' => null,
-                            'role' => $this->getRoleNameById($roleInfo['role']),
+                            'role' => $roleInfo['role'],
                             'status' => 'no_applicant',
                         ];
                     }
-                    continue;
-                }
-
-                $selectedUsers = $requestsForRole->pluck('user_id')->take($remainingCount);
-
-                foreach ($selectedUsers as $userId) {
-                    $finalShifts[] = [
-                        'date' => $infoShift->date,
-                        'start_time' => $infoShift->start_time,
-                        'end_time' => $infoShift->end_time,
-                        'user_id' => $userId,
-                        'role' => $this->getRoleNameById($roleInfo['role']),
-                        'status' => 'confirmed',
-                    ];
-                    $remainingCount--;
-
-                    if ($remainingCount <= 0) {
-                        break;
-                    }
-                }
-
-                // 必要人数を満たせなかった場合
-                for ($i = 0; $i < $remainingCount; $i++) {
-                    $finalShifts[] = [
-                        'date' => $infoShift->date,
-                        'start_time' => $infoShift->start_time,
-                        'end_time' => $infoShift->end_time,
-                        'user_id' => null,
-                        'role' => $this->getRoleNameById($roleInfo['role']),
-                        'status' => 'insufficient',
-                    ];
                 }
             }
         }
+
         return $finalShifts;
     }
 
@@ -132,18 +130,5 @@ class ConfirmedCalendar
             $employee->skill2,
             $employee->skill3,
         ]);
-    }
-
-    /**
-     * 役割名を取得するメソッド
-     *
-     * @param int $roleId
-     * @return string
-     */
-    private function getRoleNameById(int $roleId): string
-    {
-        $role = Role::find($roleId);
-
-        return $role ? $role->name : 'Unknown Role';
     }
 }

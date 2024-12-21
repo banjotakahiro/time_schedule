@@ -75,11 +75,13 @@
               @if ($isCurrentMonth)
               <!-- シフト情報の表示 -->
               <div class="mt-6 text-sm text-gray-600">
+                @php
+                @endphp
                 @if (!empty($shiftsForDate))
                 @foreach ($shiftsForDate as $shift)
                 <p>ユーザーID: {{ $shift->user_id ?? '未割り当て' }}</p>
                 <p>時間: {{ \Carbon\Carbon::parse($shift->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->end_time)->format('H:i') }}</p>
-                <p>役割: {{ $shift->role ?? '未設定' }}</p>
+                <p>役割: {{ $shift->role_id ?? '未設定' }}</p>
                 <p>状態: {{ $shift->status }}</p>
                 <hr class="my-1 border-gray-300">
                 @endforeach

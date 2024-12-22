@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreConfirmedShiftRequest;
 use App\Http\Requests\UpdateConfirmedShiftRequest;
 use App\Models\ConfirmedShift;
+use App\Models\ShiftConstraint;
 use Illuminate\Http\Request;
 use App\Calendar\CalendarGenerator;
 use App\Calendar\MonthDaysShow;
@@ -48,6 +49,7 @@ class ConfirmedShiftController extends Controller
             $month = $calendar->getCurrentMonth();
         }
         $confirmed_shifts = ConfirmedShift::all();
+        $shift_constraints = ShiftConstraint::all();
 
         // $confirmed_shifts = ConfirmedShift::all();
         // 月のデータを取得
@@ -58,6 +60,7 @@ class ConfirmedShiftController extends Controller
             'currentMonth' => $month,
             'show_month_schedule' => $show_month_schedule,
             'confirmed_shifts' => $confirmed_shifts,
+            'shift_constraints' => $shift_constraints,
         ]);
     }
 

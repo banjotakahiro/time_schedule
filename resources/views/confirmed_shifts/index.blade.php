@@ -146,6 +146,71 @@
     </div>
 
 
+    <table id="shift_constraints-table" class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-3">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <tr>
+          <th scope="col" class="py-3 px-6">仕事の名前</th>
+          <th scope="col" class="py-3 px-6">仕事詳細</th>
+          <th scope="col" class="py-3 px-6"></th>
+          <th scope="col" class="py-3 px-6"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach ($shift_constraints as $shift_constraint)
+        <tr id="shift-constraint-row-{{ $shift_constraint->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+          <td class="py-4 px-6 shift-constraint-name-display">{{ $shift_constraint->name }}</td>
+          <td class="py-4 px-6 shift-constraint-description-display">{{ $shift_constraint->description }}</td>
+          <td class="py-4 px-6">
+            <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit "
+              data-id="{{ $shift_constraint->id }}">
+              {{ __('Edit') }}
+            </button>
+          </td>
+          <td class="py-4 px-6">
+            <button class="inline-block bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-save hidden"
+              data-id="{{ $shift_constraint->id }}">
+              {{ __('Save') }}
+            </button>
+          </td>
+          <td class="py-4 px-6">
+            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST">
+              @csrf
+              @method('DELETE')
+              <input type="submit" value="{{ __('Delete') }}"
+                onclick="if(!confirm('削除しますか？')){return false};"
+                class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20">
+            </form>
+          </td>
+        </tr>
+        @endforeach
+      </tbody>
+    </table>
+    <div class="py-4">
+      <h3 class="text-lg font-bold">新しいシフト制約を作成</h3>
+      <div class="space-y-2">
+        <label for="new-shift-constraint-status" class="block">ステータス</label>
+        <select id="new-shift-constraint-status" class="border px-4 py-2 rounded w-full">
+          <option value="day_off">休みの日</option>
+          <option value="mandatory_shift">必須出勤</option>
+          <option value="pairing">ペアリング</option>
+          <option value="shift_limit">シフト回数制限</option>
+        </select>
+        <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>
+        <input type="number" id="new-shift-constraint-user-id" placeholder="ユーザーID" class="border px-4 py-2 rounded w-full">
+        <label for="new-shift-constraint-date" class="block">日付</label>
+        <input type="date" id="new-shift-constraint-date" class="border px-4 py-2 rounded w-full">
+        <label for="new-shift-constraint-paired-user-id" class="block">ペアリング対象ユーザーID (任意)</label>
+        <input type="number" id="new-shift-constraint-paired-user-id" placeholder="ペアリング対象ユーザーID" class="border px-4 py-2 rounded w-full">
+        <label for="new-shift-constraint-max-shifts" class="block">最大シフト回数 (任意)</label>
+        <input type="number" id="new-shift-constraint-max-shifts" placeholder="最大シフト回数" class="border px-4 py-2 rounded w-full">
+        <label for="new-shift-constraint-extra-info" class="block">追加情報 (JSON形式)</label>
+        <textarea id="new-shift-constraint-extra-info" placeholder='{"key": "value"}' class="border px-4 py-2 rounded w-full"></textarea>
+        <button id="create-shift-constraint-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full">
+          {{ __('Create Shift Constraint') }}
+        </button>
+      </div>
+    </div>
+
   </body>
 
   </html>

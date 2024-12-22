@@ -1,83 +1,90 @@
 <x-app-layout>
-    <div class="mt-10">
-        <h1 class="text-center text-lg">予定一覧</h1>
-        <table id="employees-table" class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-3">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                    <th scope="col" class="py-3 px-6">従業員の名前</th>
-                    <th scope="col" class="py-3 px-6">従業員概要</th>
-                    <th scope="col" class="py-3 px-6">スキル</th>
-                    <th scope="col" class="py-3 px-6"></th>
-                    <th scope="col" class="py-3 px-6"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($users as $user)
-                <tr id="employee-row-{{ $user->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                    <!-- 従業員の名前 -->
-                    <td class="py-4 px-6 employee-name">{{ $user->name }}</td>
+<div class="mt-10">
+    <h1 class="text-center text-lg">予定一覧</h1>
+    <table id="employees-table" class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-3">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            <tr>
+                <th scope="col" class="py-3 px-6">従業員の名前</th>
+                <th scope="col" class="py-3 px-6">従業員概要</th>
+                <th scope="col" class="py-3 px-6">スキル</th>
+                <th scope="col" class="py-3 px-6">優先順位</th>
+                <th scope="col" class="py-3 px-6"></th>
+                <th scope="col" class="py-3 px-6"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($users as $user)
+            <tr id="employee-row-{{ $user->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                <!-- 従業員の名前 -->
+                <td class="py-4 px-6 employee-name">{{ $user->name }}</td>
 
-                    <!-- 従業員の説明 -->
-                    <td class="py-4 px-6">
-                        <div class="employee-description-display">{{ $user->employee->notes ?? 'なし' }}</div>
-                        <div class="employee-description-edit hidden"></div>
-                    </td>
+                <!-- 従業員の説明 -->
+                <td class="py-4 px-6">
+                    <div class="employee-description-display">{{ $user->employee->notes ?? 'なし' }}</div>
+                    <div class="employee-description-edit hidden"></div>
+                </td>
 
-                    <!-- 従業員のスキル -->
-                    <td class="py-4 px-6">
-                        <div class="employee-skills-display">
-                            @if ($user->employee)
-                            @foreach (range(1, 3) as $number)
-                            @php
-                            $skillId = 'skill' . $number;
-                            $role = $roles->firstWhere('id', $user->employee->{$skillId}); // 該当する役割を取得
-                            if (!$role) {
-                            // $role が null の場合の処理
-                            $roleName = 'なし'; // デフォルトの名前
-                            $roleId = 'なし'; // デフォルトのID
-                            } else {
-                            $roleName = $role->name; // 役割名
-                            $roleId = $role->id; // 役割ID
-                            }
+                <!-- 従業員のスキル -->
+                <td class="py-4 px-6">
+                    <div class="employee-skills-display">
+                        @if ($user->employee)
+                        @foreach (range(1, 3) as $number)
+                        @php
+                        $skillId = 'skill' . $number;
+                        $role = $roles->firstWhere('id', $user->employee->{$skillId});
+                        if (!$role) {
+                        $roleName = 'なし';
+                        $roleId = 'なし';
+                        } else {
+                        $roleName = $role->name;
+                        $roleId = $role->id;
+                        }
 
-                            $spanId = $user->id . '-' . $number; // spanタグのIDを生成
-                            @endphp
-                            <span
-                                class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2"
-                                id="{{ $spanId }}"
-                                data-id="{{ $roleId }}">
-                                {{ $roleName }}
-                            </span>
-                            @endforeach
-                            @else
-                            <span class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2" data-id="">なし</span>
-                            @endif
-                        </div>
+                        $spanId = $user->id . '-' . $number;
+                        @endphp
+                        <span
+                            class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2"
+                            id="{{ $spanId }}"
+                            data-id="{{ $roleId }}">
+                            {{ $roleName }}
+                        </span>
+                        @endforeach
+                        @else
+                        <span class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2" data-id="">なし</span>
+                        @endif
+                    </div>
 
-                        <div class="employee-skills-edit hidden"></div>
-                    </td>
+                    <div class="employee-skills-edit hidden"></div>
+                </td>
 
-                    <!-- 編集ボタン -->
-                    <td class="py-4 px-6">
-                        <button class="employee-btn-edit bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded"
-                            data-id="{{ $user->id }}" data-has-employee="{{ $user->employee ? 'true' : 'false' }}">
-                            {{ __('Edit') }}
-                        </button>
-                    </td>
+                <!-- 優先順位 -->
+                <td class="py-4 px-6">
+                    <div class="employee-priority-display">{{ $user->employee->priority ?? '未設定' }}</div>
+                    <div class="employee-priority-edit hidden"></div>
+                </td>
 
-                    <!-- 保存ボタン -->
-                    <td class="py-4 px-6">
-                        <button class="employee-btn-save bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded hidden"
-                            data-id="{{ $user->id }}"
-                            data-employee-id="{{ $user->employee->id ?? null }}">
-                            {{ __('Save') }}
-                        </button>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                <!-- 編集ボタン -->
+                <td class="py-4 px-6">
+                    <button class="employee-btn-edit bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded"
+                        data-id="{{ $user->id }}" data-has-employee="{{ $user->employee ? 'true' : 'false' }}">
+                        {{ __('Edit') }}
+                    </button>
+                </td>
+
+                <!-- 保存ボタン -->
+                <td class="py-4 px-6">
+                    <button class="employee-btn-save bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded hidden"
+                        data-id="{{ $user->id }}"
+                        data-employee-id="{{ $user->employee->id ?? null }}">
+                        {{ __('Save') }}
+                    </button>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
+
 
 
 

@@ -40,24 +40,28 @@
           </tr>
         </thead>
         <tbody>
+
           @foreach ($show_month_schedule['monthWeeks'] as $week)
           <tr>
             @foreach ($week as $date)
             @php
+
+
             // 現在の月を判定
             $currentMonthStart = $currentMonth['start']->format('Y-m');
             $dateMonth = \Carbon\Carbon::parse($date)->format('Y-m');
             $isCurrentMonth = $currentMonthStart === $dateMonth;
 
             // 配列から該当日付のデータを取得
-            $shift = null;
+            $shiftsForDate = [];
             foreach ($confirmed_shifts as $item) {
             if ($item->date === $date) {
-            $shift = $item;
-            break;
+            $shiftsForDate[] = $item;
             }
             }
+
             @endphp
+
 
             <td
               class="h-24 border border-gray-300 text-left align-top hover:bg-blue-100 cursor-pointer relative"
@@ -65,17 +69,24 @@
 
               <!-- 日付を表示 -->
               <div class="absolute top-1 right-2 font-bold text-sm 
-          {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
+  {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
                 {{ \Carbon\Carbon::parse($date)->format('j') }}
               </div>
-
               @if ($isCurrentMonth)
               <!-- シフト情報の表示 -->
               <div class="mt-6 text-sm text-gray-600">
-                @if ($shift)
-                <p>ユーザーID: {{ $shift->user_id}}</p>
-                <p>時間: {{ \Carbon\Carbon::parse($shift -> start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift -> end_time)->format('H:i') }}</p>
-                <p>状態: {{ $shift -> status }}</p>
+                @php
+                @endphp
+                @if (!empty($shiftsForDate))
+                @foreach ($shiftsForDate as $shift)
+                <p>ユーザーID: {{ $shift->user_id ?? '未割り当て' }}</p>
+                <p>時間: {{ \Carbon\Carbon::parse($shift->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->end_time)->format('H:i') }}</p>
+                <p>役割: {{ $shift->role_id ?? '未設定' }}</p>
+                <p>状態: {{ $shift->status }}</p>
+                <hr class="my-1 border-gray-300">
+                @endforeach
+                @else
+                <p>シフトなし</p>
                 @endif
               </div>
               @endif
@@ -97,6 +108,44 @@
         </button>
       </form>
     </div>
+
+    <div class="mt-8 mb-8">
+      <h2 class="text-2xl font-bold text-blue-700 mb-4 text-center">ユーザーごとのシフト回数</h2>
+      <table class="table-fixed w-full border-collapse bg-white shadow-md rounded-lg">
+        <thead>
+          <tr class="bg-blue-200">
+            <th class="border border-gray-300 px-4 py-2 text-gray-700 text-center">ユーザーID</th>
+            <th class="border border-gray-300 px-4 py-2 text-gray-700 text-center">シフト回数</th>
+          </tr>
+        </thead>
+        <tbody>
+          @php
+          $shiftCounts = [];
+          foreach ($confirmed_shifts as $shift) {
+          $key = $shift->user_id ?? '未割り当て'; // user_idがnullの場合は'未割り当て'をキーにする
+          if (!isset($shiftCounts[$key])) {
+          $shiftCounts[$key] = 0;
+          }
+          $shiftCounts[$key]++;
+          }
+          // user_id順に並び替え。ただし、未割り当て('未割り当て')を最後に表示
+          uksort($shiftCounts, function($a, $b) {
+          if ($a === '未割り当て') return 1; // '未割り当て'を最後に
+          if ($b === '未割り当て') return -1;
+          return $a <=> $b; // 通常の昇順ソート
+            });
+            @endphp
+            @foreach ($shiftCounts as $userId => $count)
+            <tr>
+              <td class="border border-gray-300 px-4 py-2 text-gray-700 text-center">{{ $userId }}</td>
+              <td class="border border-gray-300 px-4 py-2 text-gray-700 text-center">{{ $count }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+      </table>
+    </div>
+
+
   </body>
 
   </html>

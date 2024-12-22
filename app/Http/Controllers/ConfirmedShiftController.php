@@ -100,7 +100,7 @@ class ConfirmedShiftController extends Controller
             // データをモデルのプロパティにセット
             $confirmed_shift->user_id = $final_shift['user_id'];
             $confirmed_shift->status = $final_shift['status'];
-            $confirmed_shift->role_id = 5;
+            $confirmed_shift->role_id = $final_shift['role'];
             $confirmed_shift->date = $final_shift['date'];
             $confirmed_shift->start_time = $final_shift['start_time'];
             $confirmed_shift->end_time = $final_shift['end_time'];

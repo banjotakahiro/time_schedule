@@ -2,18 +2,27 @@
 function EmployeeEditButtonClick(event) {
     const userId = event.target.dataset.id; // user IDを取得
     const row = document.querySelector(`#employee-row-${userId}`); // 行を取得
+
     // 表示されている説明文を非表示にし、編集用の<input>を生成
     const descriptionDisplay = row.querySelector('.employee-description-display');
     const descriptionEdit = row.querySelector('.employee-description-edit');
     const currentDescription = descriptionDisplay.textContent.trim();
 
-    // これより下はスキルの説明
+    const priorityDisplay = row.querySelector('.employee-priority-display'); // 優先順位表示部分
+    const priorityEdit = row.querySelector('.employee-priority-edit'); // 優先順位編集部分
+    const currentPriority = priorityDisplay.textContent.trim() === '未設定' ? '' : priorityDisplay.textContent.trim();
+
+    // 編集用フォームを動的に生成
+    descriptionEdit.innerHTML = `
+        <input type="text" class="form-control py-2 px-4 w-full border border-gray-300 rounded-md" value="${currentDescription}">
+    `;
+
+    priorityEdit.innerHTML = `
+        <input type="number" class="form-control py-2 px-4 w-full border border-gray-300 rounded-md" value="${currentPriority}" placeholder="優先順位を入力してください">
+    `;
+
     const skillsDisplay = row.querySelector('.employee-skills-display'); // スキル表示部分
     const skillsEdit = row.querySelector('.employee-skills-edit'); // スキル編集部分
-    descriptionEdit.innerHTML = `
-            <input type="text" class="form-control py-2 px-4 w-full border border-gray-300 rounded-md" value="${currentDescription}">
-        `;
-    // 編集用フォームを動的に生成
     skillsEdit.innerHTML = [1, 2, 3].map(number => {
         const setId = `${userId}-${number}`; // spanタグのIDを生成
         const span = document.getElementById(setId); // spanタグを取得
@@ -27,14 +36,15 @@ function EmployeeEditButtonClick(event) {
                 <option value="${role.id}" ${role.id == dataId ? "selected" : ""}>${role.name}</option>
             `).join('')}
         </select>
-    `;
+        `;
     }).join('');
-
-
 
     descriptionDisplay.classList.add('hidden'); // 現在の表示を非表示
     descriptionEdit.classList.remove('hidden'); // 編集フィールドを表示
-    // 表示/編集の切り替え
+
+    priorityDisplay.classList.add('hidden'); // 優先順位表示を非表示
+    priorityEdit.classList.remove('hidden'); // 優先順位編集を表示
+
     skillsDisplay.classList.add('hidden');
     skillsEdit.classList.remove('hidden');
 
@@ -42,6 +52,7 @@ function EmployeeEditButtonClick(event) {
     event.target.classList.add('hidden'); // 編集ボタンを非表示
     row.querySelector('.employee-btn-save').classList.remove('hidden'); // 保存ボタンを表示
 }
+
 
 // 保存ボタンの動作
 function EmployeeSaveButtonClick(event) {
@@ -51,6 +62,7 @@ function EmployeeSaveButtonClick(event) {
 
     const row = document.querySelector(`#employee-row-${userId}`);
     const updatedDescription = row.querySelector('.employee-description-edit input').value.trim();
+    const updatedPriority = row.querySelector('.employee-priority-edit input').value.trim();
     const updatedSkills = {};
 
     // 各スキルの選択値を取得
@@ -64,6 +76,7 @@ function EmployeeSaveButtonClick(event) {
     // 保存URLとメソッドを設定
     const url = employeeId ? `/employees/${employeeId}` : `/employees`; // PATCHまたはPOSTのURL
     const method = employeeId ? 'PATCH' : 'POST';
+
     // 非同期リクエストを送信
     fetch(url, {
         method: method, // メソッドを指定
@@ -74,6 +87,7 @@ function EmployeeSaveButtonClick(event) {
         body: JSON.stringify({
             user_id: userId,
             notes: updatedDescription,
+            priority: updatedPriority, // 優先順位を追加
             update_skills: updatedSkills,
         }),
     })
@@ -87,6 +101,11 @@ function EmployeeSaveButtonClick(event) {
             row.querySelector('.employee-description-display').classList.remove('hidden');
             row.querySelector('.employee-description-edit').classList.add('hidden');
 
+            // 優先順位部分の表示を更新
+            row.querySelector('.employee-priority-display').textContent = updatedPriority || '未設定';
+            row.querySelector('.employee-priority-display').classList.remove('hidden');
+            row.querySelector('.employee-priority-edit').classList.add('hidden');
+
             // スキル部分の表示を更新
             const skillsDisplay = row.querySelector('.employee-skills-display');
             skillsDisplay.classList.remove('hidden');
@@ -98,19 +117,18 @@ function EmployeeSaveButtonClick(event) {
                 const role = roles.find(r => r.id === Number(skillId)); // roles から対応する名前を取得
 
                 return `
-            <span 
-                class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2"
-                id="${userId}-${number}" 
-                data-id="${role?.id || ''}">
-                ${role?.name || 'なし'}
-            </span>
-        `;
+                <span 
+                    class="inline-block bg-gray-200 text-sm text-gray-700 rounded px-2 py-1 mr-2"
+                    id="${userId}-${number}" 
+                    data-id="${role?.id || ''}">
+                    ${role?.name || 'なし'}
+                </span>
+                `;
             }).join('');
 
             // ボタンの切り替え
             row.querySelector('.employee-btn-edit').classList.remove('hidden');
             event.target.classList.add('hidden');
-
         })
         .catch(error => {
             alert('エラーが発生しました: ' + error.message);

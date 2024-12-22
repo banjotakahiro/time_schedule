@@ -18,29 +18,15 @@ class ConfirmedCalendar
      * @param string $month 指定した月 (例: '2024-12')
      * @throws InvalidArgumentException
      */
-    public function __construct(string $month)
-    {
-        if (empty($month)) {
-            throw new InvalidArgumentException('月が指定されていません。');
-        }
-        $this->month = $month;
-    }
-
-    /**
-     * シフト表を生成する
-     *
-     * @return array
-     */
     public function generateShiftPlan(): array
     {
         $finalShifts = []; // 最終的なシフト表
-        $unprocessedShifts = []; // 未処理のシフト
+        $assignedUsers = []; // 既に割り当てられたユーザー
 
         // 指定された月のリクエストシフトと情報シフトを取得
         $requestedShifts = Requested_shift::where('date', 'like', "{$this->month}%")->get();
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
 
-        // 各日程ごとに情報シフトを処理
         foreach ($informationShifts as $infoShift) {
             $rolesWithCounts = [
                 ['role' => $infoShift->role1, 'count' => $infoShift->required_staff_role1],
@@ -53,11 +39,12 @@ class ConfirmedCalendar
                     continue;
                 }
 
-                $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo) {
+                $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsers) {
                     return $infoShift->date === $reqShift->date
                         && $infoShift->start_time <= $reqShift->start_time
                         && $infoShift->end_time >= $reqShift->end_time
-                        && in_array($roleInfo['role'], $this->getUserRoles($reqShift->user_id));
+                        && in_array($roleInfo['role'], $this->getUserRoles($reqShift->user_id))
+                        && !in_array($reqShift->user_id, $assignedUsers); // 割り当て済みユーザーを除外
                 });
 
                 $remainingCount = $roleInfo['count'];
@@ -73,24 +60,31 @@ class ConfirmedCalendar
                         'role' => $roleInfo['role'],
                         'status' => 'confirmed_single',
                     ];
+                    $assignedUsers[] = $singleRequest->user_id; // ユーザーを割り当て済みに追加
                 } elseif ($requestsForRole->count() > 1) {
-                    // 二人以上申請がある場合
-                    $selectedUsers = $requestsForRole->pluck('user_id')->take($remainingCount);
+                    // 申請が二人以上ある場合、priorityを考慮してソート
+                    $sortedRequests = $requestsForRole->sort(function ($a, $b) {
+                        $priorityA = Employee::where('user_id', $a->user_id)->value('priority') ?? 0;
+                        $priorityB = Employee::where('user_id', $b->user_id)->value('priority') ?? 0;
 
-                    foreach ($selectedUsers as $userId) {
+                        return $priorityB <=> $priorityA; // priority降順でソート
+                    });
+
+                    foreach ($sortedRequests as $request) {
+                        if ($remainingCount <= 0) {
+                            break;
+                        }
+
                         $finalShifts[] = [
                             'date' => $infoShift->date,
                             'start_time' => $infoShift->start_time,
                             'end_time' => $infoShift->end_time,
-                            'user_id' => $userId,
+                            'user_id' => $request->user_id,
                             'role' => $roleInfo['role'],
                             'status' => 'processed_from_multiple',
                         ];
+                        $assignedUsers[] = $request->user_id; // ユーザーを割り当て済みに追加
                         $remainingCount--;
-
-                        if ($remainingCount <= 0) {
-                            break;
-                        }
                     }
                 } else {
                     // 必要人数を満たせなかった場合
@@ -108,8 +102,10 @@ class ConfirmedCalendar
             }
         }
 
+            
         return $finalShifts;
     }
+
 
     /**
      * ユーザーの役割を取得するメソッド

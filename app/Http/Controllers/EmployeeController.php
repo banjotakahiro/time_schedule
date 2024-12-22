@@ -12,6 +12,7 @@ class EmployeeController extends Controller
         $employee = new Employee();
         $employee->notes = $request->notes;
         $employee->user_id = $request->user_id;
+        $employee -> priority= $request->priority;
         $update_skills= $request->update_skills;
         $employee->skill1 = $update_skills["skill1"];
         $employee->skill2 = $update_skills["skill2"];
@@ -29,6 +30,7 @@ class EmployeeController extends Controller
         $employee = Employee::find($employee_Id);
         $employee->notes = $request->notes;
         $employee->user_id = $request->user_id;
+        $employee -> priority= $request->priority;
         $update_skills= $request->update_skills;
         $employee->skill1 = $update_skills["skill1"];
         $employee->skill2 = $update_skills["skill2"];

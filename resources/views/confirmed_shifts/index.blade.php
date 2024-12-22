@@ -149,31 +149,34 @@
     <table id="shift_constraints-table" class="w-full text-sm text-left text-gray-500 dark:text-gray-400 mt-3">
       <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
         <tr>
-          <th scope="col" class="py-3 px-6">仕事の名前</th>
-          <th scope="col" class="py-3 px-6">仕事詳細</th>
-          <th scope="col" class="py-3 px-6"></th>
+          <th scope="col" class="py-3 px-6">ステータス</th>
+          <th scope="col" class="py-3 px-6">ユーザーID</th>
+          <th scope="col" class="py-3 px-6">日付</th>
+          <th scope="col" class="py-3 px-6">ペアリングユーザーID</th>
+          <th scope="col" class="py-3 px-6">最大シフト回数</th>
+          <th scope="col" class="py-3 px-6">追加情報</th>
           <th scope="col" class="py-3 px-6"></th>
         </tr>
       </thead>
       <tbody>
         @foreach ($shift_constraints as $shift_constraint)
         <tr id="shift-constraint-row-{{ $shift_constraint->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <td class="py-4 px-6 shift-constraint-name-display">{{ $shift_constraint->name }}</td>
-          <td class="py-4 px-6 shift-constraint-description-display">{{ $shift_constraint->description }}</td>
+          <td class="py-4 px-6 shift-constraint-status-display">{{ $shift_constraint->status }}</td>
+          <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->user_id }}</td>
+          <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date ?? '-' }}</td>
+          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_user_id ?? '-' }}</td>
+          <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts ?? '-' }}</td>
+          <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info ?? '-' }}</td>
           <td class="py-4 px-6">
-            <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit "
+            <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit"
               data-id="{{ $shift_constraint->id }}">
               {{ __('Edit') }}
             </button>
-          </td>
-          <td class="py-4 px-6">
             <button class="inline-block bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-save hidden"
               data-id="{{ $shift_constraint->id }}">
               {{ __('Save') }}
             </button>
-          </td>
-          <td class="py-4 px-6">
-            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST">
+            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST" class="inline-block">
               @csrf
               @method('DELETE')
               <input type="submit" value="{{ __('Delete') }}"
@@ -211,8 +214,9 @@
       </div>
     </div>
 
+
   </body>
 
   </html>
-  <script src="{{ asset('js/confirmed_shift.js') }}"></script>
+  <script src="{{ asset('js/shift_constraint.js') }}"></script>
 </x-app-layout>

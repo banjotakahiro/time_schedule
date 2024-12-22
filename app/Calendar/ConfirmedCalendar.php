@@ -37,6 +37,7 @@ class ConfirmedCalendar
         $constraints = ShiftConstraint::where('month', $this->month)->get();
 
         foreach ($informationShifts as $infoShift) {
+            $assignedUsersForDay = []; // 日ごとの割り当てを追跡
             $rolesWithCounts = [
                 ['role' => $infoShift->role1, 'count' => $infoShift->required_staff_role1],
                 ['role' => $infoShift->role2, 'count' => $infoShift->required_staff_role2],
@@ -50,12 +51,12 @@ class ConfirmedCalendar
 
                 $remainingCount = $roleInfo['count'];
 
-                $this->applyMandatoryShifts($finalShifts, $assignedUsers, $constraints, $infoShift, $roleInfo, $remainingCount);
+                $this->applyMandatoryShifts($finalShifts, $assignedUsersForDay, $constraints, $infoShift, $roleInfo, $remainingCount);
                 $this->applyPairingConstraints($constraints, $infoShift, $roleInfo);
                 $this->applyShiftLimitConstraints($constraints, $infoShift, $roleInfo);
 
                 if ($remainingCount > 0) {
-                    $this->processRequestsForRole($finalShifts, $assignedUsers, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
+                    $this->processRequestsForRole($finalShifts, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
                 }
             }
         }
@@ -103,7 +104,7 @@ class ConfirmedCalendar
     {
         $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsers) {
             $isDayOff = isset($this->dayOffs[$reqShift->user_id]) &&
-                        in_array($infoShift->date, $this->dayOffs[$reqShift->user_id]);
+                in_array($infoShift->date, $this->dayOffs[$reqShift->user_id]);
 
             return $infoShift->date === $reqShift->date
                 && $infoShift->start_time <= $reqShift->start_time
@@ -129,7 +130,22 @@ class ConfirmedCalendar
             $assignedUsers[] = $request->user_id;
             $remainingCount--;
         }
+
+        // 必要人数を満たせなかった場合の処理
+        if ($remainingCount > 0) {
+            for ($i = 0; $i < $remainingCount; $i++) {
+                $finalShifts[] = [
+                    'date' => $infoShift->date,
+                    'start_time' => $infoShift->start_time,
+                    'end_time' => $infoShift->end_time,
+                    'user_id' => null,
+                    'role' => $roleInfo['role'],
+                    'status' => 'no_applicant',
+                ];
+            }
+        }
     }
+
 
     private function getUserRoles(int $userId): array
     {
@@ -146,4 +162,3 @@ class ConfirmedCalendar
         ]);
     }
 }
-

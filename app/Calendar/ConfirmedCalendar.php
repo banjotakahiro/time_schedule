@@ -34,7 +34,7 @@ class ConfirmedCalendar
 
         $requestedShifts = Requested_shift::where('date', 'like', "{$this->month}%")->get();
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
-        $constraints = ShiftConstraint::where('month', $this->month)->get();
+        $constraints = ShiftConstraint::where('date', 'like', "{$this->month}%")->get();
 
         foreach ($informationShifts as $infoShift) {
             $assignedUsersForDay = []; // 日ごとの割り当てを追跡
@@ -102,6 +102,7 @@ class ConfirmedCalendar
 
     private function processRequestsForRole(array &$finalShifts, array &$assignedUsers, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
     {
+        // リクエストをフィルタリング
         $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsers) {
             $isDayOff = isset($this->dayOffs[$reqShift->user_id]) &&
                 in_array($infoShift->date, $this->dayOffs[$reqShift->user_id]);
@@ -114,7 +115,13 @@ class ConfirmedCalendar
                 && !$isDayOff;
         });
 
-        foreach ($requestsForRole as $request) {
+        // 優先順位に基づいて並び替え
+        $sortedRequests = $requestsForRole->sortByDesc(function ($reqShift) {
+            return $this->getUserPriority($reqShift->user_id);
+        });
+
+        // 割り当て処理
+        foreach ($sortedRequests as $request) {
             if ($remainingCount <= 0) {
                 break;
             }
@@ -147,6 +154,7 @@ class ConfirmedCalendar
     }
 
 
+
     private function getUserRoles(int $userId): array
     {
         $employee = Employee::where('user_id', $userId)->first();
@@ -160,5 +168,15 @@ class ConfirmedCalendar
             $employee->skill2,
             $employee->skill3,
         ]);
+    }
+
+// ここで優先度を分岐させる処理をする
+    private function getUserPriority(int $userId): int
+    {
+        // Employee テーブルから priority を取得
+        $employee = Employee::where('user_id', $userId)->first();
+
+        // priority が存在しない場合は最低優先度とする
+        return $employee->priority !== null ? $employee->priority : PHP_INT_MAX;
     }
 }

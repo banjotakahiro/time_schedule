@@ -24,6 +24,7 @@ function createShiftConstraint() {
         extra_info: extraInfo ? JSON.parse(extraInfo) : null, // JSON形式で保存
     };
 
+
     // 非同期リクエストでデータを保存
     fetch('/shift_constraints', {
         method: 'POST',
@@ -61,24 +62,47 @@ function createShiftConstraint() {
 
 // テーブルを非同期的に再描画する関数
 function reloadShiftConstraintsTable() {
-    // シフト制約データを取得
-    fetch('/shift_constraints')
+    // 非同期リクエストで最新のテーブルHTMLを取得
+    fetch('/confirmed_shifts')
         .then(response => {
             if (!response.ok) {
-                throw new Error('テーブルの再読み込みに失敗しました');
+                throw new Error('テーブルデータの再読み込みに失敗しました');
             }
             return response.text(); // レスポンスをHTMLとして取得
         })
         .then(html => {
             const parser = new DOMParser();
             const newTable = parser.parseFromString(html, 'text/html').querySelector('#shift_constraints-table');
+
+            // 現在のテーブルと置き換え
             const currentTable = document.querySelector('#shift_constraints-table');
-            currentTable.replaceWith(newTable); // 古いテーブルを新しいテーブルに置き換え
+            if (currentTable && newTable) {
+                currentTable.replaceWith(newTable);
+
+                // 必要に応じてイベントリスナーを再設定
+                initializeTableEventListeners();
+            }
         })
         .catch(error => {
-            console.error('エラー:', error);
-            alert('テーブルの再描画中にエラーが発生しました');
+            console.error('エラー:', error.message);
         });
+}
+
+function initializeTableEventListeners() {
+    // 編集ボタンや保存ボタンのイベントリスナーを再設定する
+    document.querySelectorAll('.shift-constraint-btn-edit').forEach(button => {
+        button.addEventListener('click', function (event) {
+            console.log('Edit button clicked', event.target.dataset.id);
+            // 必要に応じて編集モードのロジックを追加
+        });
+    });
+
+    document.querySelectorAll('.shift-constraint-btn-save').forEach(button => {
+        button.addEventListener('click', function (event) {
+            console.log('Save button clicked', event.target.dataset.id);
+            // 必要に応じて保存処理のロジックを追加
+        });
+    });
 }
 
 // DOMが読み込まれたときにリスナーを設定

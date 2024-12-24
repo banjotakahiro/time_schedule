@@ -5,6 +5,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\InformationShiftController;
 use App\Http\Controllers\ConfirmedShiftController;
+use App\Http\Controllers\ShiftConstraintController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,4 +56,7 @@ Route::resource('information_shifts', InformationShiftController::class)
     ->middleware('auth');
 
 Route::resource('confirmed_shifts', ConfirmedShiftController::class)
+    ->middleware('auth');
+
+Route::resource('shift_constraints', ShiftConstraintController::class)
     ->middleware('auth');

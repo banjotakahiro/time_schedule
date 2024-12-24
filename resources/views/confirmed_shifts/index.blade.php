@@ -195,7 +195,8 @@
         <select id="new-shift-constraint-status" class="border px-4 py-2 rounded w-full">
           <option value="day_off">休みの日</option>
           <option value="mandatory_shift">必須出勤</option>
-          <option value="pairing">ペアリング</option>
+          <option value="pairing">一緒にしていい人</option>
+          <option value="no_pairing">一緒にしたら駄目な人</option>
           <option value="shift_limit">シフト回数制限</option>
         </select>
         <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>

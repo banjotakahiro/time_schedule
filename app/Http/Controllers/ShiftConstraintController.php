@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use App\Models\ShiftConstraint;
 use Illuminate\Http\Request;
 
@@ -28,7 +29,18 @@ class ShiftConstraintController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $shiftConstraint = new ShiftConstraint();
+        $shiftConstraint->status = $request->input('status');
+        $shiftConstraint->user_id = $request->input('user_id');
+        $shiftConstraint->date = $request->input('date');
+        $shiftConstraint->paired_user_id = $request->input('paired_user_id');
+        $shiftConstraint->max_shifts = $request->input('max_shifts');
+        $shiftConstraint->extra_info = $request->input('extra_info');
+        $shiftConstraint->save();
+
+        return response()->json([
+            'shiftConstaraint' => $shiftConstraint
+        ]);
     }
 
     /**

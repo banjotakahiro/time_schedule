@@ -24,7 +24,7 @@ class ConfirmedCalendar
 
     public function setDayOffs(array $dayOffs): void
     {
-        $this->dayOffs = $dayOffs;
+        // $this->dayOffs = $dayOffs;
     }
 
     public function generateShiftPlan(): array
@@ -66,44 +66,44 @@ class ConfirmedCalendar
 
     private function applyMandatoryShifts(array &$finalShifts, array &$assignedUsers, $constraints, $infoShift, $roleInfo, int &$remainingCount): void
     {
-        foreach ($constraints as $constraint) {
-            if ($constraint->status === 'mandatory_shift' && $constraint->date === $infoShift->date) {
-                $finalShifts[] = [
-                    'date' => $infoShift->date,
-                    'start_time' => $infoShift->start_time,
-                    'end_time' => $infoShift->end_time,
-                    'user_id' => $constraint->user_id,
-                    'role' => $roleInfo['role'],
-                    'status' => 'mandatory_shift',
-                ];
-                $assignedUsers[] = $constraint->user_id;
-                $remainingCount--;
-            }
-        }
+        // foreach ($constraints as $constraint) {
+        //     if ($constraint->status === 'mandatory_shift' && $constraint->date === $infoShift->date) {
+        //         $finalShifts[] = [
+        //             'date' => $infoShift->date,
+        //             'start_time' => $infoShift->start_time,
+        //             'end_time' => $infoShift->end_time,
+        //             'user_id' => $constraint->user_id,
+        //             'role' => $roleInfo['role'],
+        //             'status' => 'mandatory_shift',
+        //         ];
+        //         $assignedUsers[] = $constraint->user_id;
+        //         $remainingCount--;
+        //     }
+        // }
     }
 
     private function applyPairingConstraints($constraints, $infoShift, $roleInfo): void
     {
-        foreach ($constraints as $constraint) {
-            if ($constraint->status === 'pairing') {
-                // ロジック: 必ず一緒にする/しない
-            }
-        }
+        // foreach ($constraints as $constraint) {
+        //     if ($constraint->status === 'pairing') {
+        //         // ロジック: 必ず一緒にする/しない
+        //     }
+        // }
     }
 
     private function applyShiftLimitConstraints($constraints, $infoShift, $roleInfo): void
     {
-        foreach ($constraints as $constraint) {
-            if ($constraint->status === 'shift_limit') {
-                // ロジック: 1週間または月単位でのシフト回数制限
-            }
-        }
+        // foreach ($constraints as $constraint) {
+        //     if ($constraint->status === 'shift_limit') {
+        //         // ロジック: 1週間または月単位でのシフト回数制限
+        //     }
+        // }
     }
 
-    private function processRequestsForRole(array &$finalShifts, array &$assignedUsers, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
+    private function processRequestsForRole(array &$finalShifts, array &$assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
     {
         // リクエストをフィルタリング
-        $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsers) {
+        $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsersForDay) {
             $isDayOff = isset($this->dayOffs[$reqShift->user_id]) &&
                 in_array($infoShift->date, $this->dayOffs[$reqShift->user_id]);
 
@@ -111,7 +111,7 @@ class ConfirmedCalendar
                 && $infoShift->start_time <= $reqShift->start_time
                 && $infoShift->end_time >= $reqShift->end_time
                 && in_array($roleInfo['role'], $this->getUserRoles($reqShift->user_id))
-                && !in_array($reqShift->user_id, $assignedUsers)
+                && !array_key_exists($reqShift->user_id, $assignedUsersForDay) // その日に既に役割が割り当てられていないかをチェック
                 && !$isDayOff;
         });
 
@@ -126,6 +126,7 @@ class ConfirmedCalendar
                 break;
             }
 
+            // 割り当て
             $finalShifts[] = [
                 'date' => $infoShift->date,
                 'start_time' => $infoShift->start_time,
@@ -134,7 +135,9 @@ class ConfirmedCalendar
                 'role' => $roleInfo['role'],
                 'status' => 'processed_from_multiple',
             ];
-            $assignedUsers[] = $request->user_id;
+
+            // 割り当て済みのユーザーを追跡し、ユーザーIDをキー、割り当てられた役割を値として記録
+            $assignedUsersForDay[$request->user_id] = $roleInfo['role'];
             $remainingCount--;
         }
 
@@ -155,6 +158,8 @@ class ConfirmedCalendar
 
 
 
+
+
     private function getUserRoles(int $userId): array
     {
         $employee = Employee::where('user_id', $userId)->first();
@@ -170,7 +175,7 @@ class ConfirmedCalendar
         ]);
     }
 
-// ここで優先度を分岐させる処理をする
+    // ここで優先度を分岐させる処理をする
     private function getUserPriority(int $userId): int
     {
         // Employee テーブルから priority を取得

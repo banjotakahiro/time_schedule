@@ -64,14 +64,30 @@ class ShiftConstraintController extends Controller
      */
     public function update(Request $request, ShiftConstraint $shiftConstraint)
     {
-        //
+        Log::info('Received data for store:', $request->all());
+
+        $shiftConstraint->status = $request->input('status');
+        $shiftConstraint->user_id = $request->input('user-id');
+        $shiftConstraint->date = $request->input('date');
+        $shiftConstraint->paired_user_id = $request->input('paired-user-id');
+        $shiftConstraint->max_shifts = $request->input('max-shifts');
+        $shiftConstraint->extra_info = $request->input('extra-info');
+        $shiftConstraint->save();
+
+        return response()->json([
+            'shiftConstraint' => $shiftConstraint
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ShiftConstraint $shiftConstraint)
+    public function destroy($id)
     {
-        //
+        $shift_constraint = ShiftConstraint::find($id);
+        $shift_constraint->delete();
+
+        return redirect('/confirmed_shifts');
     }
 }

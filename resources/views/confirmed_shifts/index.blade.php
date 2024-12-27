@@ -155,7 +155,8 @@
           <th scope="col" class="py-3 px-6">ペアリングユーザーID</th>
           <th scope="col" class="py-3 px-6">最大シフト回数</th>
           <th scope="col" class="py-3 px-6">追加情報</th>
-          <th scope="col" class="py-3 px-6"></th>
+          <th scope="col" class="py-3 px-6">編集</th>
+          <th scope="col" class="py-3 px-6">削除</th>
         </tr>
       </thead>
       <tbody>
@@ -163,20 +164,22 @@
         <tr id="shift-constraint-row-{{ $shift_constraint->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
           <td class="py-4 px-6 shift-constraint-status-display">{{ $shift_constraint->status }}</td>
           <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->user_id }}</td>
-          <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date ?? '-' }}</td>
-          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_user_id ?? '-' }}</td>
-          <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts ?? '-' }}</td>
-          <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info ?? '-' }}</td>
+          <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date }}</td>
+          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_user_id }}</td>
+          <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts }}</td>
+          <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info }}</td>
           <td class="py-4 px-6">
             <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit"
               data-id="{{ $shift_constraint->id }}">
               {{ __('Edit') }}
             </button>
+          </td>
+          <td class="py-4 px-6">
             <button class="inline-block bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-save hidden"
               data-id="{{ $shift_constraint->id }}">
               {{ __('Save') }}
             </button>
-            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST" class="inline-block">
+            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST" class="inline-block shift-constraint-delete-form">
               @csrf
               @method('DELETE')
               <input type="submit" value="{{ __('Delete') }}"
@@ -188,16 +191,18 @@
         @endforeach
       </tbody>
     </table>
+
+
     <div class="py-4">
       <h3 class="text-lg font-bold">新しいシフト制約を作成</h3>
       <div class="space-y-2">
         <label for="new-shift-constraint-status" class="block">ステータス</label>
         <select id="new-shift-constraint-status" class="border px-4 py-2 rounded w-full">
-          <option value="day_off">休みの日</option>
-          <option value="mandatory_shift">必須出勤</option>
-          <option value="pairing">一緒にしていい人</option>
-          <option value="no_pairing">一緒にしたら駄目な人</option>
-          <option value="shift_limit">シフト回数制限</option>
+          <option value="休みの日">休みの日</option>
+          <option value="必須出勤">必須出勤</option>
+          <option value="一緒にしていい人">一緒にしていい人</option>
+          <option value="一緒にしたらだめな人">一緒にしたら駄目な人</option>
+          <option value="シフト回数制限">シフト回数制限</option>
         </select>
         <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>
         <input type="number" id="new-shift-constraint-user-id" placeholder="ユーザーID" class="border px-4 py-2 rounded w-full">

@@ -147,6 +147,6 @@ class ConfirmedShiftController extends Controller
      */
     public function destroy(ConfirmedShift $confirmedShift)
     {
-        //
+        
     }
 }

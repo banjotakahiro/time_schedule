@@ -154,29 +154,52 @@
           <th scope="col" class="py-3 px-6">日付</th>
           <th scope="col" class="py-3 px-6">ペアリングユーザーID</th>
           <th scope="col" class="py-3 px-6">最大シフト回数</th>
+          <th scope="col" class="py-3 px-6">優先順位</th>
+          <th scope="col" class="py-3 px-6">役割</th> <!-- roleを追加 -->
           <th scope="col" class="py-3 px-6">追加情報</th>
-          <th scope="col" class="py-3 px-6"></th>
+          <th scope="col" class="py-3 px-6">編集</th>
+          <th scope="col" class="py-3 px-6">削除</th>
         </tr>
       </thead>
       <tbody>
+        @php
+        $statusTranslations = [
+        'day_off' => '休みの日',
+        'mandatory_shift' => '必須出勤',
+        'pairing' => '一緒にしていい人',
+        'no_pairing' => '一緒にしたらだめな人',
+        'shift_limit' => 'シフト回数制限'
+        ];
+        @endphp
+
         @foreach ($shift_constraints as $shift_constraint)
         <tr id="shift-constraint-row-{{ $shift_constraint->id }}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-          <td class="py-4 px-6 shift-constraint-status-display">{{ $shift_constraint->status }}</td>
+          <td class="py-4 px-6 shift-constraint-status-display">
+            {{ $statusTranslations[$shift_constraint->status] ?? $shift_constraint->status }}
+          </td>
           <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->user_id }}</td>
-          <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date ?? '-' }}</td>
-          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_user_id ?? '-' }}</td>
-          <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts ?? '-' }}</td>
-          <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info ?? '-' }}</td>
+          <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date }}</td>
+          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_user_id }}</td>
+          <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts }}</td>
+          <td class="py-4 px-6 shift-constraint-priority-display">{{ $shift_constraint->priority }}</td>
+          <td class="py-4 px-6 shift-constraint-role-display">
+            {{ $shift_constraint->roleDetails->name ?? 'No Role' }}
+            <!-- データがない場合にNo Roleを表示 -->
+          </td>
+
+          <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info }}</td>
           <td class="py-4 px-6">
             <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit"
               data-id="{{ $shift_constraint->id }}">
               {{ __('Edit') }}
             </button>
+          </td>
+          <td class="py-4 px-6">
             <button class="inline-block bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-save hidden"
               data-id="{{ $shift_constraint->id }}">
               {{ __('Save') }}
             </button>
-            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST" class="inline-block">
+            <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST" class="inline-block shift-constraint-delete-form">
               @csrf
               @method('DELETE')
               <input type="submit" value="{{ __('Delete') }}"
@@ -188,6 +211,10 @@
         @endforeach
       </tbody>
     </table>
+
+
+
+
     <div class="py-4">
       <h3 class="text-lg font-bold">新しいシフト制約を作成</h3>
       <div class="space-y-2">
@@ -196,24 +223,39 @@
           <option value="day_off">休みの日</option>
           <option value="mandatory_shift">必須出勤</option>
           <option value="pairing">一緒にしていい人</option>
-          <option value="no_pairing">一緒にしたら駄目な人</option>
+          <option value="no_pairing">一緒にしたらだめな人</option>
           <option value="shift_limit">シフト回数制限</option>
         </select>
+
         <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>
         <input type="number" id="new-shift-constraint-user-id" placeholder="ユーザーID" class="border px-4 py-2 rounded w-full">
+
         <label for="new-shift-constraint-date" class="block">日付</label>
         <input type="date" id="new-shift-constraint-date" class="border px-4 py-2 rounded w-full">
+
+        <label for="new-shift-constraint-role" class="block">役割</label>
+        <select id="new-shift-constraint-role" class="border px-4 py-2 rounded w-full">
+          <!-- サーバーサイドから取得した役割データをここに動的に追加 -->
+          @foreach ($roles as $role)
+          <option value="{{ $role->id }}">{{ $role->name }}</option>
+          @endforeach
+        </select>
+
         <label for="new-shift-constraint-paired-user-id" class="block">ペアリング対象ユーザーID (任意)</label>
         <input type="number" id="new-shift-constraint-paired-user-id" placeholder="ペアリング対象ユーザーID" class="border px-4 py-2 rounded w-full">
+
         <label for="new-shift-constraint-max-shifts" class="block">最大シフト回数 (任意)</label>
         <input type="number" id="new-shift-constraint-max-shifts" placeholder="最大シフト回数" class="border px-4 py-2 rounded w-full">
+
         <label for="new-shift-constraint-extra-info" class="block">追加情報 (JSON形式)</label>
         <textarea id="new-shift-constraint-extra-info" placeholder='{"key": "value"}' class="border px-4 py-2 rounded w-full"></textarea>
+
         <button id="create-shift-constraint-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full">
           {{ __('Create Shift Constraint') }}
         </button>
       </div>
     </div>
+
 
 
   </body>

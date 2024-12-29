@@ -6,6 +6,7 @@ use App\Http\Requests\StoreConfirmedShiftRequest;
 use App\Http\Requests\UpdateConfirmedShiftRequest;
 use App\Models\ConfirmedShift;
 use App\Models\ShiftConstraint;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use App\Calendar\CalendarGenerator;
 use App\Calendar\MonthDaysShow;
@@ -49,8 +50,9 @@ class ConfirmedShiftController extends Controller
             $month = $calendar->getCurrentMonth();
         }
         $confirmed_shifts = ConfirmedShift::all();
-        $shift_constraints = ShiftConstraint::all();
+        $shift_constraints = ShiftConstraint::with('roleDetails')->get();
 
+        $roles = Role::all();
         // $confirmed_shifts = ConfirmedShift::all();
         // 月のデータを取得
         $month_days_show = new MonthDaysShow();
@@ -61,6 +63,7 @@ class ConfirmedShiftController extends Controller
             'show_month_schedule' => $show_month_schedule,
             'confirmed_shifts' => $confirmed_shifts,
             'shift_constraints' => $shift_constraints,
+            'roles' => $roles,
         ]);
     }
 
@@ -86,7 +89,7 @@ class ConfirmedShiftController extends Controller
         // Carbonで月の開始日と終了日を取得
         $startOfMonth = Carbon::parse($formattedMonth)->startOfMonth(); // 月の開始日
         $endOfMonth = Carbon::parse($formattedMonth)->endOfMonth();     // 月の終了日
-        
+
         // 対象月の既存データを削除
         ConfirmedShift::whereBetween('date', [$startOfMonth, $endOfMonth])->delete();
 
@@ -145,8 +148,5 @@ class ConfirmedShiftController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ConfirmedShift $confirmedShift)
-    {
-        //
-    }
+    public function destroy(ConfirmedShift $confirmedShift) {}
 }

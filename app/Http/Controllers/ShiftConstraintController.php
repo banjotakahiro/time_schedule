@@ -35,6 +35,8 @@ class ShiftConstraintController extends Controller
         $shiftConstraint->date = $request->input('date');
         $shiftConstraint->paired_user_id = $request->input('paired_user_id');
         $shiftConstraint->max_shifts = $request->input('max_shifts');
+        $shiftConstraint->role = $request->input('role');
+        $shiftConstraint->priority = $request->input('priority');
         $shiftConstraint->extra_info = $request->input('extra_info');
         $shiftConstraint->save();
 
@@ -64,14 +66,32 @@ class ShiftConstraintController extends Controller
      */
     public function update(Request $request, ShiftConstraint $shiftConstraint)
     {
-        //
+        Log::info('Received data for store:', $request->all());
+
+        $shiftConstraint->status = $request->input('status');
+        $shiftConstraint->user_id = $request->input('user-id');
+        $shiftConstraint->date = $request->input('date');
+        $shiftConstraint->paired_user_id = $request->input('paired-user-id');
+        $shiftConstraint->max_shifts = $request->input('max-shifts');
+        $shiftConstraint->role = $request->input('role');
+        $shiftConstraint->priority = $request->input('priority');
+        $shiftConstraint->extra_info = $request->input('extra-info');
+        $shiftConstraint->save();
+
+        return response()->json([
+            'shiftConstraint' => $shiftConstraint
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ShiftConstraint $shiftConstraint)
+    public function destroy($id)
     {
-        //
+        $shift_constraint = ShiftConstraint::find($id);
+        $shift_constraint->delete();
+
+        return redirect('/confirmed_shifts');
     }
 }

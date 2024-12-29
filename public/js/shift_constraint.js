@@ -14,16 +14,6 @@ function createShiftConstraint() {
     return;
   }
 
-  // JSON形式のオブジェクトを構築
-  const requestData = {
-    status: status,
-    user_id: userId,
-    date: date || null, // 日付が空の場合はnullを送信
-    paired_user_id: pairedUserId || null, // ペアリングユーザーが空の場合はnullを送信
-    max_shifts: maxShifts || null, // 最大シフト回数が空の場合はnullを送信
-    extra_info: extraInfo ? JSON.parse(extraInfo) : null, // JSON形式で保存
-  };
-
 
   // 非同期リクエストでデータを保存処理する。なお、updateメソッドではない
   fetch('/shift_constraints', {
@@ -109,7 +99,6 @@ function initializeTableEventListeners() {
 
 async function saveShiftConstraint(rowId, updatedData) {
   try {
-    console.log('送信データ:', updatedData); // 送信データを表示
 
     const response = await fetch(`/shift_constraints/${rowId}`, {
       method: 'PATCH', // データを更新
@@ -141,33 +130,85 @@ function initializeShiftConstraintHandlers() {
   const saveButtons = document.querySelectorAll('.shift-constraint-btn-save');
   const deleteForms = document.querySelectorAll('.shift-constraint-delete-form');
 
+  const statusTranslations = {
+    'day_off': '休みの日',
+    'mandatory_shift': '必須出勤',
+    'pairing': '一緒にしていい人',
+    'no_pairing': '一緒にしたらだめな人',
+    'shift_limit': 'シフト回数制限'
+  };
+
+  function translateStatus(value, toJapanese = true) {
+    if (toJapanese) {
+      return statusTranslations[value] || value;
+    }
+    return Object.keys(statusTranslations).find(key => statusTranslations[key] === value) || value;
+  }
+
   function toggleInputFields(row, isEditMode) {
     row.querySelectorAll('td').forEach(cell => {
-      if (cell.classList.contains('shift-constraint-status-display') ||
+      if (
+        cell.classList.contains('shift-constraint-status-display') ||
         cell.classList.contains('shift-constraint-user-id-display') ||
         cell.classList.contains('shift-constraint-date-display') ||
         cell.classList.contains('shift-constraint-paired-user-id-display') ||
         cell.classList.contains('shift-constraint-max-shifts-display') ||
-        cell.classList.contains('shift-constraint-extra-info-display')) {
-
+        cell.classList.contains('shift-constraint-extra-info-display')
+      ) {
         if (isEditMode) {
           const currentValue = cell.textContent.trim();
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.value = currentValue;
-          input.className = 'py-2 px-4 border rounded w-full';
-          cell.textContent = '';
-          cell.appendChild(input);
+          if (cell.classList.contains('shift-constraint-status-display')) {
+            // ステータスのドロップダウン形式を作成する
+            const select = document.createElement('select');
+            select.className = 'py-2 px-4 border rounded w-full';
+            [
+              { value: 'day_off', label: '休みの日' },
+              { value: 'mandatory_shift', label: '必須出勤' },
+              { value: 'pairing', label: '一緒にしていい人' },
+              { value: 'no_pairing', label: '一緒にしたらだめな人' },
+              { value: 'shift_limit', label: 'シフト回数制限' }
+            ].forEach(optionData => {
+              const option = document.createElement('option');
+              option.value = optionData.value;
+              option.textContent = optionData.label;
+              if (optionData.value === translateStatus(currentValue, false)) {
+                option.selected = true;
+              }
+              select.appendChild(option);
+            });
+            cell.textContent = '';
+            cell.appendChild(select);
+
+            //変更後もセルにラベルの値を表示し続ける
+            select.addEventListener('change', () => {
+              const selectedOption = select.options[select.selectedIndex];
+              cell.dataset.selectedLabel = selectedOption.textContent;
+            });
+          } else {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentValue;
+            input.className = 'py-2 px-4 border rounded w-full';
+            cell.textContent = '';
+            cell.appendChild(input);
+          }
         } else {
-          const input = cell.querySelector('input');
-          if (input) {
-            const newValue = input.value.trim();
-            cell.textContent = newValue;
+          const inputOrSelect = cell.querySelector('input, select');
+          if (inputOrSelect) {
+            let newValue = inputOrSelect.value.trim();
+            if (cell.classList.contains('shift-constraint-status-display')) {
+              newValue = translateStatus(newValue, false);
+              // Use the label stored in data-selected-label for display
+              cell.textContent = cell.dataset.selectedLabel || translateStatus(newValue, true);
+            } else {
+              cell.textContent = newValue;
+            }
           }
         }
       }
     });
   }
+
 
   editButtons.forEach(editButton => {
     editButton.addEventListener('click', () => {
@@ -195,22 +236,34 @@ function initializeShiftConstraintHandlers() {
       // 入力欄を元に戻す
       toggleInputFields(row, false);
 
-      // 更新された値を収集
+      // 更新された値と更新されていない値も収集
       const updatedData = {};
+      const statusTranslations = {
+        '休みの日': 'day_off',
+        '必須出勤': 'mandatory_shift',
+        '一緒にしていい人': 'pairing',
+        '一緒にしたらだめな人': 'no_pairing',
+        'シフト回数制限': 'shift_limit'
+      };
+
       row.querySelectorAll('td').forEach(cell => {
-        const input = cell.querySelector('input');
         const className = cell.className.split(' ').find(cls => cls.startsWith('shift-constraint-'));
 
         if (className) {
           // `-display` を削除して正しいキー名に変換
           const key = className.replace('shift-constraint-', '').replace('-display', '');
-          if (input) {
-            updatedData[key] = input.value.trim(); // <input>タグの値を取得
+
+          if (key === 'status') {
+            const value = cell.textContent.trim(); // セルのテキストを取得
+            updatedData[key] = statusTranslations[value] || value; // 配列に基づいて変換
           } else {
-            updatedData[key] = cell.textContent.trim(); // セルのテキストを取得
+            updatedData[key] = cell.textContent.trim(); // 他のフィールドはそのまま
           }
+
+          console.log(updatedData[key]);
         }
       });
+
 
       console.log('収集されたデータ:', updatedData);
 

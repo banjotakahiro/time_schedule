@@ -35,6 +35,8 @@ class ShiftConstraintController extends Controller
         $shiftConstraint->date = $request->input('date');
         $shiftConstraint->paired_user_id = $request->input('paired_user_id');
         $shiftConstraint->max_shifts = $request->input('max_shifts');
+        $shiftConstraint->role = $request->input('role');
+        $shiftConstraint->priority = $request->input('priority');
         $shiftConstraint->extra_info = $request->input('extra_info');
         $shiftConstraint->save();
 
@@ -71,6 +73,8 @@ class ShiftConstraintController extends Controller
         $shiftConstraint->date = $request->input('date');
         $shiftConstraint->paired_user_id = $request->input('paired-user-id');
         $shiftConstraint->max_shifts = $request->input('max-shifts');
+        $shiftConstraint->role = $request->input('role');
+        $shiftConstraint->priority = $request->input('priority');
         $shiftConstraint->extra_info = $request->input('extra-info');
         $shiftConstraint->save();
 

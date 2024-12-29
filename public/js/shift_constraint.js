@@ -5,6 +5,7 @@ function createShiftConstraint() {
   const userId = document.getElementById('new-shift-constraint-user-id').value.trim();
   const date = document.getElementById('new-shift-constraint-date').value;
   const pairedUserId = document.getElementById('new-shift-constraint-paired-user-id').value.trim();
+  const role = document.getElementById('new-shift-constraint-role').value.trim();
   const maxShifts = document.getElementById('new-shift-constraint-max-shifts').value.trim();
   const extraInfo = document.getElementById('new-shift-constraint-extra-info').value.trim();
 
@@ -14,8 +15,18 @@ function createShiftConstraint() {
     return;
   }
 
+  // リクエストデータを構築
+  const requestData = {
+    status,
+    user_id: userId,
+    date,
+    paired_user_id: pairedUserId || null,
+    role: role || null,
+    max_shifts: maxShifts || null,
+    extra_info: extraInfo ? extraInfo : "{}", // ここでJSON文字列として渡す
+  };
 
-  // 非同期リクエストでデータを保存処理する。なお、updateメソッドではない
+  // 非同期リクエストでデータを保存処理する
   fetch('/shift_constraints', {
     method: 'POST',
     headers: {
@@ -39,6 +50,7 @@ function createShiftConstraint() {
       document.getElementById('new-shift-constraint-date').value = '';
       document.getElementById('new-shift-constraint-paired-user-id').value = '';
       document.getElementById('new-shift-constraint-max-shifts').value = '';
+      document.getElementById('new-shift-constraint-role').value = ''; // 役割もリセット
       document.getElementById('new-shift-constraint-extra-info').value = '';
 
       // テーブルを再描画
@@ -49,6 +61,7 @@ function createShiftConstraint() {
       alert('シフト制約の作成中にエラーが発生しました: ' + error.message);
     });
 }
+
 
 // テーブルを非同期的に再描画する関数
 function reloadShiftConstraintsTable() {
@@ -153,6 +166,7 @@ function initializeShiftConstraintHandlers() {
         cell.classList.contains('shift-constraint-date-display') ||
         cell.classList.contains('shift-constraint-paired-user-id-display') ||
         cell.classList.contains('shift-constraint-max-shifts-display') ||
+        cell.classList.contains('shift-constraint-priority-display') ||
         cell.classList.contains('shift-constraint-extra-info-display')
       ) {
         if (isEditMode) {

@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('shift_constraints', function (Blueprint $table) {
-            //
+            // 外部キー制約を削除
+            // カラムを削除
+            $table->dropColumn('role');
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('shift_constraints', function (Blueprint $table) {
-            //
+            // カラムを再追加
+            $table->unsignedBigInteger('role')->nullable();
+            // 外部キー制約を再追加
         });
     }
 };

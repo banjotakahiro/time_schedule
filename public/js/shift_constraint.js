@@ -23,7 +23,7 @@ function createShiftConstraint() {
     paired_user_id: pairedUserId || null,
     role: role || null,
     max_shifts: maxShifts || null,
-    extra_info: extraInfo ? extraInfo : "{}", // ここでJSON文字列として渡す
+    extra_info: extraInfo, // ここでJSON文字列として渡す
   };
 
   // 非同期リクエストでデータを保存処理する
@@ -170,10 +170,12 @@ function initializeShiftConstraintHandlers() {
         cell.classList.contains('shift-constraint-role-display') ||
         cell.classList.contains('shift-constraint-extra-info-display')
       ) {
+        const currentValue = cell.textContent.trim(); // 現在のセルの値を取得
+
         if (isEditMode) {
-          const currentValue = cell.textContent.trim();
+          // 編集モードの設定
           if (cell.classList.contains('shift-constraint-status-display')) {
-            // ステータスのドロップダウン形式を作成する
+            // ステータス用のドロップダウン
             const select = document.createElement('select');
             select.className = 'py-2 px-4 border rounded w-full';
             [
@@ -186,7 +188,7 @@ function initializeShiftConstraintHandlers() {
               const option = document.createElement('option');
               option.value = optionData.value;
               option.textContent = optionData.label;
-              if (optionData.value === translateStatus(currentValue, false)) {
+              if (optionData.label === currentValue) {
                 option.selected = true;
               }
               select.appendChild(option);
@@ -194,24 +196,25 @@ function initializeShiftConstraintHandlers() {
             cell.textContent = '';
             cell.appendChild(select);
           } else if (cell.classList.contains('shift-constraint-user-id-display') || cell.classList.contains('shift-constraint-paired-user-id-display')) {
-            // users データを元にドロップダウン形式を作成
+            // ユーザー用のドロップダウン
             const select = document.createElement('select');
             select.className = 'py-2 px-4 border rounded w-full';
             select.innerHTML = users.map(user => `
-                        <option value="${user.id}" ${user.id == currentValue ? "selected" : ""}>${user.name}</option>
-                    `).join('');
+            <option value="${user.id}" ${user.name === currentValue ? "selected" : ""}>${user.name}</option>
+          `).join('');
             cell.textContent = '';
             cell.appendChild(select);
           } else if (cell.classList.contains('shift-constraint-role-display')) {
-            // roles データを元にドロップダウン形式を作成
+            // 役割用のドロップダウン
             const select = document.createElement('select');
             select.className = 'py-2 px-4 border rounded w-full';
             select.innerHTML = roles.map(role => `
-                        <option value="${role.id}" ${role.id == currentValue ? "selected" : ""}>${role.name}</option>
-                    `).join('');
+            <option value="${role.id}" ${role.name === currentValue ? "selected" : ""}>${role.name}</option>
+          `).join('');
             cell.textContent = '';
             cell.appendChild(select);
           } else {
+            // その他のテキスト入力
             const input = document.createElement('input');
             input.type = 'text';
             input.value = currentValue;
@@ -219,8 +222,9 @@ function initializeShiftConstraintHandlers() {
             cell.textContent = '';
             cell.appendChild(input);
           }
-          // ここより下を直せば入力欄の処理はどうにかなる
-        } else {
+        }
+        // ここより下を直せば入力欄を閉じたときの表示の処理はどうにかなる
+        else {
           const inputOrSelect = cell.querySelector('input, select');
           if (inputOrSelect) {
             let newValue;

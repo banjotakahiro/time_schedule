@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateConfirmedShiftRequest;
 use App\Models\ConfirmedShift;
 use App\Models\ShiftConstraint;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Calendar\CalendarGenerator;
 use App\Calendar\MonthDaysShow;
@@ -50,9 +51,14 @@ class ConfirmedShiftController extends Controller
             $month = $calendar->getCurrentMonth();
         }
         $confirmed_shifts = ConfirmedShift::all();
-        $shift_constraints = ShiftConstraint::with('roleDetails')->get();
+        $shift_constraints = ShiftConstraint::with([
+            'roleDetails:id,name',
+            'users:id,name',
+            'paired_users:id,name',
+        ])->get();
+        $users = User::select('id', 'name')->get();
+        $roles = Role::select('id', 'name')->get();
 
-        $roles = Role::all();
         // $confirmed_shifts = ConfirmedShift::all();
         // 月のデータを取得
         $month_days_show = new MonthDaysShow();
@@ -63,6 +69,7 @@ class ConfirmedShiftController extends Controller
             'show_month_schedule' => $show_month_schedule,
             'confirmed_shifts' => $confirmed_shifts,
             'shift_constraints' => $shift_constraints,
+            'users' => $users,
             'roles' => $roles,
         ]);
     }

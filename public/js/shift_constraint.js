@@ -167,6 +167,7 @@ function initializeShiftConstraintHandlers() {
         cell.classList.contains('shift-constraint-paired-user-id-display') ||
         cell.classList.contains('shift-constraint-max-shifts-display') ||
         cell.classList.contains('shift-constraint-priority-display') ||
+        cell.classList.contains('shift-constraint-role-display') ||
         cell.classList.contains('shift-constraint-extra-info-display')
       ) {
         if (isEditMode) {
@@ -192,12 +193,24 @@ function initializeShiftConstraintHandlers() {
             });
             cell.textContent = '';
             cell.appendChild(select);
-
-            //変更後もセルにラベルの値を表示し続ける
-            select.addEventListener('change', () => {
-              const selectedOption = select.options[select.selectedIndex];
-              cell.dataset.selectedLabel = selectedOption.textContent;
-            });
+          } else if (cell.classList.contains('shift-constraint-user-id-display') || cell.classList.contains('shift-constraint-paired-user-id-display')) {
+            // users データを元にドロップダウン形式を作成
+            const select = document.createElement('select');
+            select.className = 'py-2 px-4 border rounded w-full';
+            select.innerHTML = users.map(user => `
+                        <option value="${user.id}" ${user.id == currentValue ? "selected" : ""}>${user.name}</option>
+                    `).join('');
+            cell.textContent = '';
+            cell.appendChild(select);
+          } else if (cell.classList.contains('shift-constraint-role-display')) {
+            // roles データを元にドロップダウン形式を作成
+            const select = document.createElement('select');
+            select.className = 'py-2 px-4 border rounded w-full';
+            select.innerHTML = roles.map(role => `
+                        <option value="${role.id}" ${role.id == currentValue ? "selected" : ""}>${role.name}</option>
+                    `).join('');
+            cell.textContent = '';
+            cell.appendChild(select);
           } else {
             const input = document.createElement('input');
             input.type = 'text';
@@ -206,15 +219,27 @@ function initializeShiftConstraintHandlers() {
             cell.textContent = '';
             cell.appendChild(input);
           }
+          // ここより下を直せば入力欄の処理はどうにかなる
         } else {
           const inputOrSelect = cell.querySelector('input, select');
           if (inputOrSelect) {
-            let newValue = inputOrSelect.value.trim();
+            let newValue;
+
+            if (inputOrSelect.tagName === 'SELECT') {
+              // ドロップダウン形式の場合、labelを取得
+              const selectedOption = inputOrSelect.options[inputOrSelect.selectedIndex];
+              newValue = selectedOption ? selectedOption.textContent.trim() : ''; // 選択されたオプションのラベル
+            } else if (inputOrSelect.tagName === 'INPUT') {
+              // 通常の入力欄の場合、値を取得
+              newValue = inputOrSelect.value.trim();
+            }
+
             if (cell.classList.contains('shift-constraint-status-display')) {
+              // ステータスを変換して表示
               newValue = translateStatus(newValue, false);
-              // Use the label stored in data-selected-label for display
               cell.textContent = cell.dataset.selectedLabel || translateStatus(newValue, true);
             } else {
+              // 取得した値またはラベルをセルに設定
               cell.textContent = newValue;
             }
           }
@@ -222,6 +247,7 @@ function initializeShiftConstraintHandlers() {
       }
     });
   }
+
 
 
   editButtons.forEach(editButton => {
@@ -247,43 +273,47 @@ function initializeShiftConstraintHandlers() {
       const rowId = saveButton.getAttribute('data-id');
       const row = document.getElementById(`shift-constraint-row-${rowId}`);
 
-      // 入力欄を元に戻す
-      toggleInputFields(row, false);
-
       // 更新された値と更新されていない値も収集
       const updatedData = {};
-      const statusTranslations = {
-        '休みの日': 'day_off',
-        '必須出勤': 'mandatory_shift',
-        '一緒にしていい人': 'pairing',
-        '一緒にしたらだめな人': 'no_pairing',
-        'シフト回数制限': 'shift_limit'
-      };
 
+      // やっと入力欄ベースで値を取得できるようになった！！
       row.querySelectorAll('td').forEach(cell => {
-        const className = cell.className.split(' ').find(cls => cls.startsWith('shift-constraint-'));
+        const classNameArray = cell.className.split(' ');
+        const className = classNameArray.find(cls => cls.startsWith('shift-constraint-'));
 
         if (className) {
-          // `-display` を削除して正しいキー名に変換
-          const key = className.replace('shift-constraint-', '').replace('-display', '');
+          try {
+            // `-display` を削除して正しいキー名に変換
+            const key = className.replace('shift-constraint-', '').replace('-display', '');
 
-          if (key === 'status') {
-            const value = cell.textContent.trim(); // セルのテキストを取得
-            updatedData[key] = statusTranslations[value] || value; // 配列に基づいて変換
-          } else {
-            updatedData[key] = cell.textContent.trim(); // 他のフィールドはそのまま
+            const inputOrSelect = cell.querySelector('input, select'); // 入力欄またはセレクトボックスを取得
+
+            if (inputOrSelect) {
+              // 入力欄やセレクトボックスから値を取得
+              if (inputOrSelect.tagName === 'SELECT') {
+                updatedData[key] = inputOrSelect.value; // セレクトボックスの値を取得
+              } else if (inputOrSelect.tagName === 'INPUT') {
+                updatedData[key] = inputOrSelect.value.trim(); // 入力欄の値を取得
+              }
+            } else {
+              updatedData[key] = cell.textContent.trim(); // 入力欄がない場合はテキストを取得
+            }
+
+            console.log(updatedData[key]);
+          } catch (error) {
+            console.error(`エラーが発生しました: ${error.message}`);
           }
-
-          console.log(updatedData[key]);
         }
       });
-
 
       console.log('収集されたデータ:', updatedData);
 
       // 非同期で保存を実行
       await saveShiftConstraint(rowId, updatedData);
-
+      // ここで入力欄を元に戻している
+      // 入力欄を元に戻す
+      // この入力欄をもとに戻す際の処理があそこの関数に書かれている
+      toggleInputFields(row, false);
       // ボタンの表示を切り替える
       saveButton.classList.add('hidden');
       const editButton = row.querySelector(`.shift-constraint-btn-edit`);

@@ -27,12 +27,14 @@ class ShiftConstraintController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    //  ここはややこしいけどインプットの値がstoreのときはアンダーバーだがupdateのときは-になっている
     public function store(Request $request)
     {
         $shiftConstraint = new ShiftConstraint();
         $shiftConstraint->status = $request->input('status');
         $shiftConstraint->user_id = $request->input('user_id');
-        $shiftConstraint->date = $request->input('date');
+        $shiftConstraint->start_date = $request->input('start_date');
+        $shiftConstraint->end_date = $request->input('end_date');
         $shiftConstraint->paired_user_id = $request->input('paired_user_id');
         $shiftConstraint->max_shifts = $request->input('max_shifts');
         $shiftConstraint->role = $request->input('role');
@@ -70,7 +72,8 @@ class ShiftConstraintController extends Controller
 
         $shiftConstraint->status = $request->input('status');
         $shiftConstraint->user_id = $request->input('user-id');
-        $shiftConstraint->date = $request->input('date');
+        $shiftConstraint->start_date = $request->input('start-date');
+        $shiftConstraint->end_date = $request->input('end-date');
         $shiftConstraint->paired_user_id = $request->input('paired-user-id');
         $shiftConstraint->max_shifts = $request->input('max-shifts');
         $shiftConstraint->role = $request->input('role');

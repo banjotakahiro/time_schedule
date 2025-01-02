@@ -151,7 +151,8 @@
         <tr>
           <th scope="col" class="py-3 px-6">ステータス</th>
           <th scope="col" class="py-3 px-6">ユーザーID</th>
-          <th scope="col" class="py-3 px-6">日付</th>
+          <th scope="col" class="py-3 px-6">開始の日付</th>
+          <th scope="col" class="py-3 px-6">終わりの日付</th>
           <th scope="col" class="py-3 px-6">ペアリングユーザーID</th>
           <th scope="col" class="py-3 px-6">最大シフト回数</th>
           <th scope="col" class="py-3 px-6">優先順位</th>

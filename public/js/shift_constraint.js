@@ -3,7 +3,8 @@ function createShiftConstraint() {
   // 入力欄から値を取得
   const status = document.getElementById('new-shift-constraint-status').value;
   const userId = document.getElementById('new-shift-constraint-user-id').value.trim();
-  const date = document.getElementById('new-shift-constraint-date').value;
+  const start_date = document.getElementById('new-shift-constraint-start-date').value;
+  const end_date = document.getElementById('new-shift-constraint-end-date').value;
   const pairedUserId = document.getElementById('new-shift-constraint-paired-user-id').value.trim();
   const role = document.getElementById('new-shift-constraint-role').value.trim();
   const maxShifts = document.getElementById('new-shift-constraint-max-shifts').value.trim();
@@ -19,7 +20,8 @@ function createShiftConstraint() {
   const requestData = {
     status,
     user_id: userId,
-    date,
+    start_date,
+    end_date,
     paired_user_id: pairedUserId || null,
     role: role || null,
     max_shifts: maxShifts || null,
@@ -47,7 +49,8 @@ function createShiftConstraint() {
       // 入力欄をリセット
       document.getElementById('new-shift-constraint-status').value = '';
       document.getElementById('new-shift-constraint-user-id').value = '';
-      document.getElementById('new-shift-constraint-date').value = '';
+      document.getElementById('new-shift-constraint-start-date').value = '';
+      document.getElementById('new-shift-constraint-end-date').value = '';
       document.getElementById('new-shift-constraint-paired-user-id').value = '';
       document.getElementById('new-shift-constraint-max-shifts').value = '';
       document.getElementById('new-shift-constraint-role').value = ''; // 役割もリセット
@@ -163,7 +166,8 @@ function initializeShiftConstraintHandlers() {
       if (
         cell.classList.contains('shift-constraint-status-display') ||
         cell.classList.contains('shift-constraint-user-id-display') ||
-        cell.classList.contains('shift-constraint-date-display') ||
+        cell.classList.contains('shift-constraint-start-date-display') ||
+        cell.classList.contains('shift-constraint-end-date-display') ||
         cell.classList.contains('shift-constraint-paired-user-id-display') ||
         cell.classList.contains('shift-constraint-max-shifts-display') ||
         cell.classList.contains('shift-constraint-priority-display') ||

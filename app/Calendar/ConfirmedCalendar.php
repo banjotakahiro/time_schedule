@@ -45,7 +45,7 @@ class ConfirmedCalendar
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
 
         // 指定された月のシフト制約を取得
-        $constraints = ShiftConstraint::where('date', 'like', "{$this->month}%")->get();
+        $constraints = ShiftConstraint::where('start_date', 'like', "{$this->month}%")->get();
 
         foreach ($informationShifts as $infoShift) {
             $assignedUsersForDay = []; // その日の割り当てを追跡する配列

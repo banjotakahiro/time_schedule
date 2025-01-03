@@ -151,7 +151,8 @@
         <tr>
           <th scope="col" class="py-3 px-6">ステータス</th>
           <th scope="col" class="py-3 px-6">ユーザーID</th>
-          <th scope="col" class="py-3 px-6">日付</th>
+          <th scope="col" class="py-3 px-6">開始の日付</th>
+          <th scope="col" class="py-3 px-6">終わりの日付</th>
           <th scope="col" class="py-3 px-6">ペアリングユーザーID</th>
           <th scope="col" class="py-3 px-6">最大シフト回数</th>
           <th scope="col" class="py-3 px-6">優先順位</th>
@@ -178,7 +179,8 @@
             {{ $statusTranslations[$shift_constraint->status] ?? $shift_constraint->status }}
           </td>
           <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->users->name }}</td>
-          <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date }}</td>
+          <td class="py-4 px-6 shift-constraint-start-date-display">{{ $shift_constraint->start_date }}</td>
+          <td class="py-4 px-6 shift-constraint-end-date-display">{{ $shift_constraint->end_date }}</td>
           <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_users->name }}</td>
           <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts }}</td>
           <td class="py-4 px-6 shift-constraint-priority-display">{{ $shift_constraint->priority }}</td>
@@ -228,21 +230,34 @@
         </select>
 
         <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>
-        <input type="number" id="new-shift-constraint-user-id" placeholder="ユーザーID" class="border px-4 py-2 rounded w-full">
+        <select id="new-shift-constraint-user-id" name="user_id" class="border px-4 py-2 rounded w-full">
+          @foreach ($users as $user)
+          <option value="{{ $user->id }}">{{ $user->name }}</option>
+          @endforeach
+        </select>
 
-        <label for="new-shift-constraint-date" class="block">日付</label>
-        <input type="date" id="new-shift-constraint-date" class="border px-4 py-2 rounded w-full">
+        <label class="block">日付範囲</label>
+        <div class="flex space-x-2">
+          <input type="date" id="new-shift-constraint-start-date" class="border px-4 py-2 rounded w-full" placeholder="開始日付">
+          <input type="date" id="new-shift-constraint-end-date" class="border px-4 py-2 rounded w-full" placeholder="終了日付">
+        </div>
 
         <label for="new-shift-constraint-role" class="block">役割</label>
         <select id="new-shift-constraint-role" class="border px-4 py-2 rounded w-full">
           <!-- サーバーサイドから取得した役割データをここに動的に追加 -->
+          <option value="">選択しない</option> <!-- 任意なので空オプションを追加 -->
           @foreach ($roles as $role)
           <option value="{{ $role->id }}">{{ $role->name }}</option>
           @endforeach
         </select>
 
         <label for="new-shift-constraint-paired-user-id" class="block">ペアリング対象ユーザーID (任意)</label>
-        <input type="number" id="new-shift-constraint-paired-user-id" placeholder="ペアリング対象ユーザーID" class="border px-4 py-2 rounded w-full">
+        <select id="new-shift-constraint-paired-user-id" name="paired_user_id" class="border px-4 py-2 rounded w-full">
+          <option value="">選択しない</option> <!-- 任意なので空オプションを追加 -->
+          @foreach ($users as $user)
+          <option value="{{ $user->id }}">{{ $user->name }}</option>
+          @endforeach
+        </select>
 
         <label for="new-shift-constraint-max-shifts" class="block">最大シフト回数 (任意)</label>
         <input type="number" id="new-shift-constraint-max-shifts" placeholder="最大シフト回数" class="border px-4 py-2 rounded w-full">
@@ -265,6 +280,7 @@
     // Blade の roles データを JavaScript に渡す
     const roles = JSON.parse('{!! json_encode($roles) !!}');
     const users = JSON.parse('{!! json_encode($users) !!}');
+    const shift_constraints = JSON.parse('{!! json_encode($shift_constraints) !!}');
   </script>
   <script src="{{ asset('js/shift_constraint.js') }}"></script>
 </x-app-layout>

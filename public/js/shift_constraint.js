@@ -3,7 +3,8 @@ function createShiftConstraint() {
   // 入力欄から値を取得
   const status = document.getElementById('new-shift-constraint-status').value;
   const userId = document.getElementById('new-shift-constraint-user-id').value.trim();
-  const date = document.getElementById('new-shift-constraint-date').value;
+  const start_date = document.getElementById('new-shift-constraint-start-date').value;
+  const end_date = document.getElementById('new-shift-constraint-end-date').value;
   const pairedUserId = document.getElementById('new-shift-constraint-paired-user-id').value.trim();
   const role = document.getElementById('new-shift-constraint-role').value.trim();
   const maxShifts = document.getElementById('new-shift-constraint-max-shifts').value.trim();
@@ -19,11 +20,12 @@ function createShiftConstraint() {
   const requestData = {
     status,
     user_id: userId,
-    date,
+    start_date,
+    end_date,
     paired_user_id: pairedUserId || null,
     role: role || null,
     max_shifts: maxShifts || null,
-    extra_info: extraInfo ? extraInfo : "{}", // ここでJSON文字列として渡す
+    extra_info: extraInfo, // ここでJSON文字列として渡す
   };
 
   // 非同期リクエストでデータを保存処理する
@@ -47,7 +49,8 @@ function createShiftConstraint() {
       // 入力欄をリセット
       document.getElementById('new-shift-constraint-status').value = '';
       document.getElementById('new-shift-constraint-user-id').value = '';
-      document.getElementById('new-shift-constraint-date').value = '';
+      document.getElementById('new-shift-constraint-start-date').value = '';
+      document.getElementById('new-shift-constraint-end-date').value = '';
       document.getElementById('new-shift-constraint-paired-user-id').value = '';
       document.getElementById('new-shift-constraint-max-shifts').value = '';
       document.getElementById('new-shift-constraint-role').value = ''; // 役割もリセット
@@ -163,17 +166,20 @@ function initializeShiftConstraintHandlers() {
       if (
         cell.classList.contains('shift-constraint-status-display') ||
         cell.classList.contains('shift-constraint-user-id-display') ||
-        cell.classList.contains('shift-constraint-date-display') ||
+        cell.classList.contains('shift-constraint-start-date-display') ||
+        cell.classList.contains('shift-constraint-end-date-display') ||
         cell.classList.contains('shift-constraint-paired-user-id-display') ||
         cell.classList.contains('shift-constraint-max-shifts-display') ||
         cell.classList.contains('shift-constraint-priority-display') ||
         cell.classList.contains('shift-constraint-role-display') ||
         cell.classList.contains('shift-constraint-extra-info-display')
       ) {
+        const currentValue = cell.textContent.trim(); // 現在のセルの値を取得
+
         if (isEditMode) {
-          const currentValue = cell.textContent.trim();
+          // 編集モードの設定
           if (cell.classList.contains('shift-constraint-status-display')) {
-            // ステータスのドロップダウン形式を作成する
+            // ステータス用のドロップダウン
             const select = document.createElement('select');
             select.className = 'py-2 px-4 border rounded w-full';
             [
@@ -186,7 +192,7 @@ function initializeShiftConstraintHandlers() {
               const option = document.createElement('option');
               option.value = optionData.value;
               option.textContent = optionData.label;
-              if (optionData.value === translateStatus(currentValue, false)) {
+              if (optionData.label === currentValue) {
                 option.selected = true;
               }
               select.appendChild(option);
@@ -194,24 +200,25 @@ function initializeShiftConstraintHandlers() {
             cell.textContent = '';
             cell.appendChild(select);
           } else if (cell.classList.contains('shift-constraint-user-id-display') || cell.classList.contains('shift-constraint-paired-user-id-display')) {
-            // users データを元にドロップダウン形式を作成
+            // ユーザー用のドロップダウン
             const select = document.createElement('select');
             select.className = 'py-2 px-4 border rounded w-full';
             select.innerHTML = users.map(user => `
-                        <option value="${user.id}" ${user.id == currentValue ? "selected" : ""}>${user.name}</option>
-                    `).join('');
+            <option value="${user.id}" ${user.name === currentValue ? "selected" : ""}>${user.name}</option>
+          `).join('');
             cell.textContent = '';
             cell.appendChild(select);
           } else if (cell.classList.contains('shift-constraint-role-display')) {
-            // roles データを元にドロップダウン形式を作成
+            // 役割用のドロップダウン
             const select = document.createElement('select');
             select.className = 'py-2 px-4 border rounded w-full';
             select.innerHTML = roles.map(role => `
-                        <option value="${role.id}" ${role.id == currentValue ? "selected" : ""}>${role.name}</option>
-                    `).join('');
+            <option value="${role.id}" ${role.name === currentValue ? "selected" : ""}>${role.name}</option>
+          `).join('');
             cell.textContent = '';
             cell.appendChild(select);
           } else {
+            // その他のテキスト入力
             const input = document.createElement('input');
             input.type = 'text';
             input.value = currentValue;
@@ -219,8 +226,9 @@ function initializeShiftConstraintHandlers() {
             cell.textContent = '';
             cell.appendChild(input);
           }
-          // ここより下を直せば入力欄の処理はどうにかなる
-        } else {
+        }
+        // ここより下を直せば入力欄を閉じたときの表示の処理はどうにかなる
+        else {
           const inputOrSelect = cell.querySelector('input, select');
           if (inputOrSelect) {
             let newValue;

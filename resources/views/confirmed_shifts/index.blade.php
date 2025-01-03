@@ -51,6 +51,7 @@
             $currentMonthStart = $currentMonth['start']->format('Y-m');
             $dateMonth = \Carbon\Carbon::parse($date)->format('Y-m');
             $isCurrentMonth = $currentMonthStart === $dateMonth;
+            dd($currentMonth);
 
             // 配列から該当日付のデータを取得
             $shiftsForDate = [];

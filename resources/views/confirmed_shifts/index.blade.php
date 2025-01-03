@@ -191,8 +191,12 @@
 
           <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info }}</td>
           <td class="py-4 px-6">
-            <button class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit"
-              data-id="{{ $shift_constraint->id }}">
+            <button
+              type="button"
+              class="inline-block bg-green-500 hover:bg-green-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-edit"
+              data-id="{{ $shift_constraint->id }}"
+              data-bs-toggle="modal"
+              data-bs-target="#editModal">
               {{ __('Edit') }}
             </button>
           </td>
@@ -214,14 +218,23 @@
       </tbody>
     </table>
 
-
+    <!-- モーダルのインクルード -->
+    <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <!-- モーダルコンテンツ部分 -->
+      <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
+        <div id="modal-content">
+          <!-- 動的に挿入されるコンテンツ -->
+        </div>
+      </div>
+    </div>
 
 
     <div class="py-4">
       <h3 class="text-lg font-bold">新しいシフト制約を作成</h3>
-      <div class="space-y-2">
+      <form action="{{ route('shift_constraints.store') }}" method="POST" class="space-y-2" id="new-shift-constraint-fields">
+        @csrf
         <label for="new-shift-constraint-status" class="block">ステータス</label>
-        <select id="new-shift-constraint-status" class="border px-4 py-2 rounded w-full">
+        <select id="new-shift-constraint-status" name="status" class="border px-4 py-2 rounded w-full">
           <option value="day_off">休みの日</option>
           <option value="mandatory_shift">必須出勤</option>
           <option value="pairing">一緒にしていい人</option>
@@ -229,47 +242,64 @@
           <option value="shift_limit">シフト回数制限</option>
         </select>
 
-        <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>
-        <select id="new-shift-constraint-user-id" name="user_id" class="border px-4 py-2 rounded w-full">
-          @foreach ($users as $user)
-          <option value="{{ $user->id }}">{{ $user->name }}</option>
-          @endforeach
-        </select>
-
-        <label class="block">日付範囲</label>
-        <div class="flex space-x-2">
-          <input type="date" id="new-shift-constraint-start-date" class="border px-4 py-2 rounded w-full" placeholder="開始日付">
-          <input type="date" id="new-shift-constraint-end-date" class="border px-4 py-2 rounded w-full" placeholder="終了日付">
+        <div class="form-group user-id-field">
+          <label for="new-shift-constraint-user-id" class="block">ユーザーID</label>
+          <select id="new-shift-constraint-user-id" name="user_id" class="border px-4 py-2 rounded w-full">
+            @foreach ($users as $user)
+            <option value="{{ $user->id }}">{{ $user->name }}</option>
+            @endforeach
+          </select>
         </div>
 
-        <label for="new-shift-constraint-role" class="block">役割</label>
-        <select id="new-shift-constraint-role" class="border px-4 py-2 rounded w-full">
-          <!-- サーバーサイドから取得した役割データをここに動的に追加 -->
-          <option value="">選択しない</option> <!-- 任意なので空オプションを追加 -->
-          @foreach ($roles as $role)
-          <option value="{{ $role->id }}">{{ $role->name }}</option>
-          @endforeach
-        </select>
+        <div class="form-group start-date-field">
+          <label class="block">日付範囲</label>
+          <div class="flex space-x-2">
+            <input type="date" id="new-shift-constraint-start-date" name="start_date" class="border px-4 py-2 rounded w-full" placeholder="開始日付">
+            <input type="date" id="new-shift-constraint-end-date" name="end_date" class="border px-4 py-2 rounded w-full" placeholder="終了日付">
+          </div>
+        </div>
 
-        <label for="new-shift-constraint-paired-user-id" class="block">ペアリング対象ユーザーID (任意)</label>
-        <select id="new-shift-constraint-paired-user-id" name="paired_user_id" class="border px-4 py-2 rounded w-full">
-          <option value="">選択しない</option> <!-- 任意なので空オプションを追加 -->
-          @foreach ($users as $user)
-          <option value="{{ $user->id }}">{{ $user->name }}</option>
-          @endforeach
-        </select>
+        <div class="form-group role-field">
+          <label for="new-shift-constraint-role" class="block">役割</label>
+          <select id="new-shift-constraint-role" name="role" class="border px-4 py-2 rounded w-full">
+            <option value="">選択しない</option>
+            @foreach ($roles as $role)
+            <option value="{{ $role->id }}">{{ $role->name }}</option>
+            @endforeach
+          </select>
+        </div>
 
-        <label for="new-shift-constraint-max-shifts" class="block">最大シフト回数 (任意)</label>
-        <input type="number" id="new-shift-constraint-max-shifts" placeholder="最大シフト回数" class="border px-4 py-2 rounded w-full">
+        <div class="form-group paired-user-id-field">
+          <label for="new-shift-constraint-paired-user-id" class="block">ペアリング対象ユーザーID (任意)</label>
+          <select id="new-shift-constraint-paired-user-id" name="paired_user_id" class="border px-4 py-2 rounded w-full">
+            <option value="">選択しない</option>
+            @foreach ($users as $user)
+            <option value="{{ $user->id }}">{{ $user->name }}</option>
+            @endforeach
+          </select>
+        </div>
 
-        <label for="new-shift-constraint-extra-info" class="block">追加情報 (JSON形式)</label>
-        <textarea id="new-shift-constraint-extra-info" placeholder='{"key": "value"}' class="border px-4 py-2 rounded w-full"></textarea>
+        <div class="form-group max-shifts-field">
+          <label for="new-shift-constraint-max-shifts" class="block">最大シフト回数 (任意)</label>
+          <input type="number" id="new-shift-constraint-max-shifts" name="max_shifts" placeholder="最大シフト回数" class="border px-4 py-2 rounded w-full">
+        </div>
 
-        <button id="create-shift-constraint-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full">
+        <div class="form-group priority-field">
+          <label for="new-shift-constraint-priority" class="block">優先事項</label>
+          <input type="number" id="new-shift-constraint-priority" name="priority" placeholder="優先順位" class="border px-4 py-2 rounded w-full">
+        </div>
+
+        <div class="form-group extra-info-field">
+          <label for="new-shift-constraint-extra-info" class="block">追加情報 (JSON形式)</label>
+          <textarea id="new-shift-constraint-extra-info" name="extra_info" placeholder='{"key": "value"}' class="border px-4 py-2 rounded w-full"></textarea>
+        </div>
+
+        <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2 w-full">
           {{ __('Create Shift Constraint') }}
         </button>
-      </div>
+      </form>
     </div>
+
 
 
 

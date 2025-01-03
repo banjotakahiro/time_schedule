@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
 use App\Models\ShiftConstraint;
+use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class ShiftConstraintController extends Controller
@@ -42,9 +44,7 @@ class ShiftConstraintController extends Controller
         $shiftConstraint->extra_info = $request->input('extra_info');
         $shiftConstraint->save();
 
-        return response()->json([
-            'shiftConstaraint' => $shiftConstraint
-        ]);
+        return redirect()->route('confirmed_shifts.index')->with('success', 'シフト設定を更新しました。');
     }
 
     /**
@@ -60,7 +60,16 @@ class ShiftConstraintController extends Controller
      */
     public function edit(ShiftConstraint $shiftConstraint)
     {
-        //
+        // 必要なデータを取得
+        $users = User::all(); // ユーザー一覧
+        $roles = Role::all(); // 役割一覧
+
+        // edit.blade.php にデータを渡してビューを返す
+        return view('shift_constraints.edit', [
+            'shift_constraint' => $shiftConstraint,
+            'users' => $users,
+            'roles' => $roles,
+        ]);
     }
 
     /**
@@ -70,20 +79,19 @@ class ShiftConstraintController extends Controller
     {
         Log::info('Received data for store:', $request->all());
 
-        $shiftConstraint->status = $request->input('status');
-        $shiftConstraint->user_id = $request->input('user-id');
-        $shiftConstraint->start_date = $request->input('start-date');
-        $shiftConstraint->end_date = $request->input('end-date');
-        $shiftConstraint->paired_user_id = $request->input('paired-user-id');
-        $shiftConstraint->max_shifts = $request->input('max-shifts');
-        $shiftConstraint->role = $request->input('role');
-        $shiftConstraint->priority = $request->input('priority');
-        $shiftConstraint->extra_info = $request->input('extra-info');
+        $shiftConstraint->status = $request->status;
+        $shiftConstraint->user_id = $request->user_id;
+        $shiftConstraint->start_date = $request->start_date;
+        $shiftConstraint->end_date = $request->end_date;
+        $shiftConstraint->paired_user_id = $request->paired_user_id;
+        $shiftConstraint->max_shifts = $request->max_shifts;
+        $shiftConstraint->role = $request->role;
+        $shiftConstraint->priority = $request->priority;
+        $shiftConstraint->extra_info = $request->extra_info;
         $shiftConstraint->save();
 
-        return response()->json([
-            'shiftConstraint' => $shiftConstraint
-        ]);
+        // リダイレクト処理
+        return redirect()->route('confirmed_shifts.index')->with('success', 'シフト設定を更新しました。');
     }
 
 

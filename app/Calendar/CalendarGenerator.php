@@ -8,11 +8,13 @@ class CalendarGenerator
 {
     protected $currentDate;
 
-    public function __construct($date = null)
-    {
-        // 基準日を受け取らない場合は現在日時を設定
-        $this->currentDate = $date ? Carbon::parse($date['start']) : Carbon::now();
-    }
+public function __construct($date = null)
+{
+    // タイムゾーンを設定したCarbonインスタンスを作成
+    $this->currentDate = $date 
+        ? Carbon::parse($date['start'], 'Asia/Tokyo') // タイムゾーンを指定してパース
+        : Carbon::now('Asia/Tokyo'); // 現在日時をAsia/Tokyoタイムゾーンで取得
+}
 
     public function getCurrentWeek()
     {

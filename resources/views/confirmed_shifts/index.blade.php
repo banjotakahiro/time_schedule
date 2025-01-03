@@ -45,24 +45,18 @@
           <tr>
             @foreach ($week as $date)
             @php
-
-
-            // 現在の月を判定
             $currentMonthStart = $currentMonth['start']->format('Y-m');
-            $dateMonth = \Carbon\Carbon::parse($date)->format('Y-m');
+            $dateMonth = \Carbon\Carbon::parse($date)->setTimezone('Asia/Tokyo')->format('Y-m');
             $isCurrentMonth = $currentMonthStart === $dateMonth;
-            dd($currentMonth);
 
-            // 配列から該当日付のデータを取得
+            // 該当日付のデータを取得
             $shiftsForDate = [];
             foreach ($confirmed_shifts as $item) {
             if ($item->date === $date) {
             $shiftsForDate[] = $item;
             }
             }
-
             @endphp
-
 
             <td
               class="h-24 border border-gray-300 text-left align-top hover:bg-blue-100 cursor-pointer relative"
@@ -71,17 +65,15 @@
               <!-- 日付を表示 -->
               <div class="absolute top-1 right-2 font-bold text-sm 
   {{ $isCurrentMonth ? 'text-gray-800' : 'text-gray-400' }}">
-                {{ \Carbon\Carbon::parse($date)->format('j') }}
+                {{ \Carbon\Carbon::parse($date)->setTimezone('Asia/Tokyo')->format('j') }}
               </div>
               @if ($isCurrentMonth)
               <!-- シフト情報の表示 -->
               <div class="mt-6 text-sm text-gray-600">
-                @php
-                @endphp
                 @if (!empty($shiftsForDate))
                 @foreach ($shiftsForDate as $shift)
                 <p>ユーザーID: {{ $shift->user_id ?? '未割り当て' }}</p>
-                <p>時間: {{ \Carbon\Carbon::parse($shift->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->end_time)->format('H:i') }}</p>
+                <p>時間: {{ \Carbon\Carbon::parse($shift->start_time)->setTimezone('Asia/Tokyo')->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->end_time)->setTimezone('Asia/Tokyo')->format('H:i') }}</p>
                 <p>役割: {{ $shift->role_id ?? '未設定' }}</p>
                 <p>状態: {{ $shift->status }}</p>
                 <hr class="my-1 border-gray-300">
@@ -99,6 +91,7 @@
 
       </table>
     </div>
+
     <div class="absolute bottom-4 right-4">
       <form action="{{ route('confirmed_shifts.store') }}" method="POST" id="createShiftForm">
         @csrf
@@ -121,27 +114,37 @@
         </thead>
         <tbody>
           @php
+          // $currentMonthStart を利用して月の範囲を設定
+          $currentMonthEnd = date('Y-m-t', strtotime($currentMonthStart)); // 月末の日付を取得
           $shiftCounts = [];
+
+          // 現在の月に該当するシフトをカウント
           foreach ($confirmed_shifts as $shift) {
-          $key = $shift->user_id ?? '未割り当て'; // user_idがnullの場合は'未割り当て'をキーにする
-          if (!isset($shiftCounts[$key])) {
-          $shiftCounts[$key] = 0;
-          }
-          $shiftCounts[$key]++;
-          }
-          // user_id順に並び替え。ただし、未割り当て('未割り当て')を最後に表示
-          uksort($shiftCounts, function($a, $b) {
-          if ($a === '未割り当て') return 1; // '未割り当て'を最後に
-          if ($b === '未割り当て') return -1;
-          return $a <=> $b; // 通常の昇順ソート
-            });
-            @endphp
-            @foreach ($shiftCounts as $userId => $count)
-            <tr>
-              <td class="border border-gray-300 px-4 py-2 text-gray-700 text-center">{{ $userId }}</td>
-              <td class="border border-gray-300 px-4 py-2 text-gray-700 text-center">{{ $count }}</td>
-            </tr>
-            @endforeach
+          $shiftDate = $shift->date; // シフトの日付 (データベースのカラム名に合わせて変更)
+          if ($shiftDate >= $currentMonthStart && $shiftDate <= $currentMonthEnd) {
+            $key=$shift->user_id ?? '未割り当て'; // user_idがnullの場合は'未割り当て'をキーにする
+            if (!isset($shiftCounts[$key])) {
+            $shiftCounts[$key] = 0;
+            }
+            $shiftCounts[$key]++;
+            }
+            }
+
+            // user_id順に並び替え。ただし、未割り当て('未割り当て')を最後に表示
+            uksort($shiftCounts, function($a, $b) {
+            if ($a === '未割り当て') return 1; // '未割り当て'を最後に
+            if ($b === '未割り当て') return -1;
+            return $a <=> $b; // 通常の昇順ソート
+              });
+              @endphp
+
+              @foreach ($shiftCounts as $userId => $count)
+              <tr>
+                <td class="border border-gray-300 px-4 py-2 text-gray-700 text-center">{{ $userId }}</td>
+                <td class="border border-gray-300 px-4 py-2 text-gray-700 text-center">{{ $count }}</td>
+              </tr>
+              @endforeach
+
         </tbody>
       </table>
     </div>
@@ -314,4 +317,7 @@
     const shift_constraints = JSON.parse('{!! json_encode($shift_constraints) !!}');
   </script>
   <script src="{{ asset('js/shift_constraint.js') }}"></script>
+  </body>
+
+  </html>
 </x-app-layout>

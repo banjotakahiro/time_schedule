@@ -25,19 +25,17 @@ class ConfirmedShiftController extends Controller
         // Userと紐づいているRequested_shiftsテーブルの処理はWeekDaysShow.phpで行っているため
         // 下に記載してある返り値のshow_scheduleと一緒に格納されている
         // リクエストから基準日を取得（デフォルトは現在日時）
-        $month = json_decode($request->input('current_date'), true);
+        // JSONデータをデコード
+        $month = json_decode($request->input('date'), true);
 
-        // デフォルト値を設定する条件分岐
-        if (empty($month) || !isset($month['start']) || !isset($month['end'])) {
-            // デフォルト値をセット（現在の月の開始日と終了日を使用）
-            $month = [
-                'start' => Carbon::now()->startOfMonth()->setTimezone('Asia/Tokyo'),
-                'end' => Carbon::now()->endOfMonth()->setTimezone('Asia/Tokyo'),
-            ];
+        // $month が null の場合は処理をスキップ
+        if ($month !== null) {
+            // 日本時間に変換
+            $month['start'] = Carbon::parse($month['start'])->setTimezone('Asia/Tokyo');
+            $month['end'] = Carbon::parse($month['end'])->setTimezone('Asia/Tokyo');
         }
         // CalendarGeneratorを初期化
         $calendar = new CalendarGenerator($month);
-
         // クエリパラメータ 'action' を取得
         $action = $request->query('action');
 

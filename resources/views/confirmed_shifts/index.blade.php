@@ -177,9 +177,9 @@
           <td class="py-4 px-6 shift-constraint-status-display">
             {{ $statusTranslations[$shift_constraint->status] ?? $shift_constraint->status }}
           </td>
-          <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->user_id }}</td>
+          <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->users->name }}</td>
           <td class="py-4 px-6 shift-constraint-date-display">{{ $shift_constraint->date }}</td>
-          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_user_id }}</td>
+          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_users->name }}</td>
           <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts }}</td>
           <td class="py-4 px-6 shift-constraint-priority-display">{{ $shift_constraint->priority }}</td>
           <td class="py-4 px-6 shift-constraint-role-display">
@@ -261,5 +261,10 @@
   </body>
 
   </html>
+  <script>
+    // Blade の roles データを JavaScript に渡す
+    const roles = JSON.parse('{!! json_encode($roles) !!}');
+    const users = JSON.parse('{!! json_encode($users) !!}');
+  </script>
   <script src="{{ asset('js/shift_constraint.js') }}"></script>
 </x-app-layout>

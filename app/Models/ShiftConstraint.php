@@ -25,4 +25,14 @@ class ShiftConstraint extends Model
     {
         return $this->belongsTo(Role::class, 'role'); // 'role'は外部キー名
     }
+    // users リレーション
+    public function users()
+    {
+        return $this->belongsTo(User::class, 'user_id'); // user_id が外部キー
+    }
+        // paired_users リレーション
+    public function paired_users()
+    {
+        return $this->belongsTo(User::class, 'paired_user_id'); // user_id が外部キー
+    }
 }

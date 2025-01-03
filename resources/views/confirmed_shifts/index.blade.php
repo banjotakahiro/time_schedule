@@ -173,7 +173,7 @@
         'mandatory_shift' => '必須出勤',
         'pairing' => '一緒にしていい人',
         'no_pairing' => '一緒にしたらだめな人',
-        'shift_limit' => 'シフト回数制限'
+        'shift_limit' => 'シフト回数制限',
         ];
         @endphp
 
@@ -182,18 +182,45 @@
           <td class="py-4 px-6 shift-constraint-status-display">
             {{ $statusTranslations[$shift_constraint->status] ?? $shift_constraint->status }}
           </td>
-          <td class="py-4 px-6 shift-constraint-user-id-display">{{ $shift_constraint->users->name }}</td>
-          <td class="py-4 px-6 shift-constraint-start-date-display">{{ $shift_constraint->start_date }}</td>
-          <td class="py-4 px-6 shift-constraint-end-date-display">{{ $shift_constraint->end_date }}</td>
-          <td class="py-4 px-6 shift-constraint-paired-user-id-display">{{ $shift_constraint->paired_users->name }}</td>
-          <td class="py-4 px-6 shift-constraint-max-shifts-display">{{ $shift_constraint->max_shifts }}</td>
-          <td class="py-4 px-6 shift-constraint-priority-display">{{ $shift_constraint->priority }}</td>
-          <td class="py-4 px-6 shift-constraint-role-display">
-            {{ $shift_constraint->roleDetails->name ?? 'No Role' }}
-            <!-- データがない場合にNo Roleを表示 -->
-          </td>
-
-          <td class="py-4 px-6 shift-constraint-extra-info-display">{{ $shift_constraint->extra_info }}</td>
+          @if ($shift_constraint->status === 'day_off')
+          <td class="py-4 px-6">{{ $shift_constraint->users->name }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->start_date }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->end_date }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->priority }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->extra_info }}</td>
+          @elseif ($shift_constraint->status === 'mandatory_shift')
+          <td class="py-4 px-6">{{ $shift_constraint->users->name }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->start_date }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->end_date }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->priority }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->roleDetails->name ?? '役割なし' }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->extra_info }}</td>
+          @elseif ($shift_constraint->status === 'pairing' || $shift_constraint->status === 'no_pairing')
+          <td class="py-4 px-6">{{ $shift_constraint->users->name }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->start_date }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->end_date }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->paired_users->name }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->priority }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->extra_info }}</td>
+          @elseif ($shift_constraint->status === 'shift_limit')
+          <td class="py-4 px-6">{{ $shift_constraint->users->name }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->start_date }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->end_date }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->max_shifts }}</td>
+          <td class="py-4 px-6">{{ $shift_constraint->priority }}</td>
+          <td class="py-4 px-6">-</td>
+          <td class="py-4 px-6">{{ $shift_constraint->extra_info }}</td>
+          @else
+          <td colspan="8" class="py-4 px-6 text-center">不明なステータス</td>
+          @endif
           <td class="py-4 px-6">
             <button
               type="button"
@@ -205,10 +232,6 @@
             </button>
           </td>
           <td class="py-4 px-6">
-            <button class="inline-block bg-blue-500 hover:bg-blue-700 text-center text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-20 shift-constraint-btn-save hidden"
-              data-id="{{ $shift_constraint->id }}">
-              {{ __('Save') }}
-            </button>
             <form action="{{ route('shift_constraints.destroy', $shift_constraint) }}" method="POST" class="inline-block shift-constraint-delete-form">
               @csrf
               @method('DELETE')
@@ -220,6 +243,7 @@
         </tr>
         @endforeach
       </tbody>
+
     </table>
 
     <!-- モーダルのインクルード -->

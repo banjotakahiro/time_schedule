@@ -11,41 +11,46 @@ use InvalidArgumentException;
 
 class ConfirmedCalendar
 {
-    // クラス全体の説明: このクラスは指定された月に基づいて、従業員のシフトスケジュールを生成するためのロジックを提供します。
-
     protected $month; // 基準月
     protected $dayOffs = []; // ユーザーごとの休み情報
 
-    // コンストラクタ: 基準月を設定します。
     public function __construct(string $month)
     {
         if (empty($month)) {
-            // 基準月が指定されていない場合は例外をスロー
             throw new InvalidArgumentException('月が指定されていません。');
         }
         $this->month = $month;
     }
 
-    // ユーザーごとの休み情報を設定するメソッド
     public function setDayOffs(array $dayOffs): void
     {
-        // $this->dayOffs = $dayOffs;
+        $this->dayOffs = $dayOffs;
     }
 
-    // シフトスケジュールを生成するメインのメソッド
     public function generateShiftPlan(): array
     {
-        $finalShifts = []; // 最終的なシフト表
-        $assignedUsers = []; // 既に割り当てられたユーザー
+        $finalShifts = [];
+        $assignedUsers = [];
 
-        // 指定された月のリクエストされたシフトを取得
         $requestedShifts = Requested_shift::where('date', 'like', "{$this->month}%")->get();
-
-        // 指定された月のシフト情報を取得
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
 
-        // 指定された月のシフト制約を取得
-        $constraints = ShiftConstraint::where('start_date', 'like', "{$this->month}%")->get();
+        // 指定された月のシフト制約を取得し、priority順に並び替える
+        $constraints = ShiftConstraint::where(function ($query) {
+            $query->where('start_date', '<=', "{$this->month}-31")
+                ->where('end_date', '>=', "{$this->month}-01");
+        })->get()->sort(function ($a, $b) {
+            if ($a->priority === $b->priority) {
+                return 0; // priorityが同じ場合そのままの順番
+            }
+            if ($a->priority === null) {
+                return 1; // nullの場合後ろに配置
+            }
+            if ($b->priority === null) {
+                return -1; // nullの場合後ろに配置
+            }
+            return $a->priority - $b->priority; // 数字が小さい順
+        });
 
         foreach ($informationShifts as $infoShift) {
             $assignedUsersForDay = []; // その日の割り当てを追跡する配列
@@ -59,53 +64,85 @@ class ConfirmedCalendar
 
             foreach ($rolesWithCounts as $roleInfo) {
                 if (!$roleInfo['role'] || $roleInfo['count'] <= 0) {
-                    // 役割が指定されていないか、必要人数が0以下の場合はスキップ
                     continue;
                 }
 
                 $remainingCount = $roleInfo['count']; // 割り当てが必要な人数
 
-                // 必須出勤のシフトを適用
-                $this->applyMandatoryShifts($finalShifts, $assignedUsersForDay, $constraints, $infoShift, $roleInfo, $remainingCount);
+                foreach ($constraints as $constraint) {
+                    switch ($constraint->status) {
+                        case 'day_off':
+                            $this->applyDayOffConstraint($assignedUsersForDay, $constraint);
+                            break;
+                        case 'mandatory_shift':
+                            $this->applyMandatoryShifts($finalShifts, $assignedUsersForDay, $constraint, $infoShift, $roleInfo, $remainingCount);
+                            break;
+                        case 'pairing':
+                            $this->applyPairingConstraints($assignedUsersForDay, $constraint, $infoShift);
+                            break;
+                        case 'no_pairing':
+                            $this->applyNoPairingConstraints($assignedUsersForDay, $constraint, $infoShift);
+                            break;
+                        case 'shift_limit':
+                            $this->applyShiftLimitConstraints($assignedUsersForDay, $constraint);
+                            break;
+                        default:
+                            break;
+                    }
+                }
 
-                // ペアリングの制約を適用
-                $this->applyPairingConstraints($constraints, $infoShift, $roleInfo);
-
-                // シフト回数制限を適用
-                $this->applyShiftLimitConstraints($constraints, $infoShift, $roleInfo);
-
-                // 必要人数が残っている場合、リクエストを処理
                 if ($remainingCount > 0) {
                     $this->processRequestsForRole($finalShifts, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
                 }
             }
         }
-
         return $finalShifts; // 最終的なシフト表を返す
     }
 
-    // 必須出勤のシフトを適用するメソッド
-    private function applyMandatoryShifts(array &$finalShifts, array &$assignedUsers, $constraints, $infoShift, $roleInfo, int &$remainingCount): void
+    private function applyDayOffConstraint(array &$assignedUsersForDay, $constraint): void
     {
-        // 必須出勤制約を確認して適用
+        $assignedUsersForDay[$constraint->user_id] = 'day_off';
     }
 
-    // ペアリング制約（必ず一緒にする/しない）の適用メソッド
-    private function applyPairingConstraints($constraints, $infoShift, $roleInfo): void
+    private function applyMandatoryShifts(array &$finalShifts, array &$assignedUsers, $constraint, $infoShift, $roleInfo, int &$remainingCount): void
     {
-        // ペアリング制約のロジックを記述
+        if ($constraint->user_id && $remainingCount > 0) {
+            $finalShifts[] = [
+                'date' => $infoShift->date,
+                'start_time' => $infoShift->start_time,
+                'end_time' => $infoShift->end_time,
+                'user_id' => $constraint->user_id,
+                'role' => $roleInfo['role'],
+                'status' => 'mandatory_shift',
+            ];
+            $assignedUsers[$constraint->user_id] = $roleInfo['role'];
+            $remainingCount--;
+        }
     }
 
-    // シフト回数制限を適用するメソッド
-    private function applyShiftLimitConstraints($constraints, $infoShift, $roleInfo): void
+    private function applyPairingConstraints(array &$assignedUsersForDay, $constraint, $infoShift): void
     {
-        // シフト回数制限のロジックを記述
+        if ($constraint->paired_user_id) {
+            $assignedUsersForDay[$constraint->user_id] = 'paired_with_' . $constraint->paired_user_id;
+            $assignedUsersForDay[$constraint->paired_user_id] = 'paired_with_' . $constraint->user_id;
+        }
     }
 
-    // リクエストされたシフトを処理するメソッド
+    private function applyNoPairingConstraints(array &$assignedUsersForDay, $constraint, $infoShift): void
+    {
+        if ($constraint->paired_user_id) {
+            $assignedUsersForDay[$constraint->user_id] = 'no_pairing_with_' . $constraint->paired_user_id;
+            $assignedUsersForDay[$constraint->paired_user_id] = 'no_pairing_with_' . $constraint->user_id;
+        }
+    }
+
+    private function applyShiftLimitConstraints(array &$assignedUsersForDay, $constraint): void
+    {
+        $assignedUsersForDay[$constraint->user_id] = 'shift_limit_' . $constraint->max_shifts;
+    }
+
     private function processRequestsForRole(array &$finalShifts, array &$assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
     {
-        // リクエストをフィルタリング
         $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsersForDay) {
             $isDayOff = isset($this->dayOffs[$reqShift->user_id]) &&
                 in_array($infoShift->date, $this->dayOffs[$reqShift->user_id]);
@@ -118,34 +155,28 @@ class ConfirmedCalendar
                 && !$isDayOff;
         });
 
-        // 優先順位に基づいてリクエストを並び替え
         $sortedRequests = $requestsForRole->sortByDesc(function ($reqShift) {
             return $this->getUserPriority($reqShift->user_id);
         });
 
-        // 割り当て処理
         foreach ($sortedRequests as $request) {
             if ($remainingCount <= 0) {
-                // 必要人数が満たされた場合終了
                 break;
             }
 
-            // シフト表に追加
             $finalShifts[] = [
                 'date' => $infoShift->date,
                 'start_time' => $infoShift->start_time,
                 'end_time' => $infoShift->end_time,
                 'user_id' => $request->user_id,
                 'role' => $roleInfo['role'],
-                'status' => 'processed_from_multiple',
+                'status' => 'processed_from_requests',
             ];
 
-            // 割り当て済みのユーザーを追跡
             $assignedUsersForDay[$request->user_id] = $roleInfo['role'];
             $remainingCount--;
         }
 
-        // 必要人数を満たせなかった場合、空席を記録
         if ($remainingCount > 0) {
             for ($i = 0; $i < $remainingCount; $i++) {
                 $finalShifts[] = [
@@ -154,22 +185,20 @@ class ConfirmedCalendar
                     'end_time' => $infoShift->end_time,
                     'user_id' => null,
                     'role' => $roleInfo['role'],
-                    'status' => 'no_applicant',
+                    'status' => 'unfilled',
                 ];
             }
         }
     }
 
-    // ユーザーの役割を取得するメソッド
     private function getUserRoles(int $userId): array
     {
         $employee = Employee::where('user_id', $userId)->first();
 
         if (!$employee) {
-            return []; // ユーザーが見つからない場合は空の配列を返す
+            return [];
         }
 
-        // ユーザーのスキルを取得
         return array_filter([
             $employee->skill1,
             $employee->skill2,
@@ -177,13 +206,10 @@ class ConfirmedCalendar
         ]);
     }
 
-    // ユーザーの優先度を取得するメソッド
     private function getUserPriority(int $userId): int
     {
-        // Employeeテーブルからpriorityを取得
         $employee = Employee::where('user_id', $userId)->first();
 
-        // priorityが存在しない場合は最低優先度を返す
         return $employee->priority !== null ? $employee->priority : PHP_INT_MAX;
     }
 }

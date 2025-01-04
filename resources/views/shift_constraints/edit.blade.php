@@ -59,6 +59,7 @@
             <div class="form-group mb-3 role-field">
                 <label for="role">役割</label>
                 <select id="role" name="role" class="form-control">
+                    <option value="">未選択</option>
                     @foreach($roles as $role)
                     <option value="{{ $role->id }}" {{ $shift_constraint->role == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
                     @endforeach

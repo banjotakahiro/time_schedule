@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\ShiftConstraint;
 use InvalidArgumentException;
 
+
 class ConfirmedCalendar
 {
     protected $month; // 基準月
@@ -30,7 +31,7 @@ class ConfirmedCalendar
     public function generateShiftPlan(): array
     {
         $finalShifts = [];
-        $assignedUsers = [];
+        $assignedUsers = []; // 各日付ごとに既に割り当てられたユーザーを追跡
 
         $requestedShifts = Requested_shift::where('date', 'like', "{$this->month}%")->get();
         $informationShifts = Information_shift::where('date', 'like', "{$this->month}%")->get();
@@ -68,20 +69,19 @@ class ConfirmedCalendar
                 }
 
                 $remainingCount = $roleInfo['count']; // 割り当てが必要な人数
-
                 foreach ($constraints as $constraint) {
                     switch ($constraint->status) {
                         case 'day_off':
                             $this->applyDayOffConstraint($assignedUsersForDay, $constraint);
                             break;
                         case 'mandatory_shift':
-                            $this->applyMandatoryShifts($finalShifts, $assignedUsersForDay, $constraint, $infoShift, $roleInfo, $remainingCount);
+                            $this->applyMandatoryShifts($finalShifts, $assignedUsers, $constraint, $infoShift, $roleInfo, $remainingCount);
                             break;
                         case 'pairing':
-                            $this->applyPairingConstraints($assignedUsersForDay, $constraint, $infoShift);
+                            $this->applyPairingConstraints($assignedUsersForDay, $constraint);
                             break;
                         case 'no_pairing':
-                            $this->applyNoPairingConstraints($assignedUsersForDay, $constraint, $infoShift);
+                            $this->applyNoPairingConstraints($assignedUsersForDay, $constraint);
                             break;
                         case 'shift_limit':
                             $this->applyShiftLimitConstraints($assignedUsersForDay, $constraint);
@@ -92,7 +92,7 @@ class ConfirmedCalendar
                 }
 
                 if ($remainingCount > 0) {
-                    $this->processRequestsForRole($finalShifts, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
+                    $this->processRequestsForRole($finalShifts, $assignedUsers, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
                 }
             }
         }
@@ -101,57 +101,90 @@ class ConfirmedCalendar
 
     private function applyDayOffConstraint(array &$assignedUsersForDay, $constraint): void
     {
-        $assignedUsersForDay[$constraint->user_id] = 'day_off';
+        $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
+        foreach ($period as $date) {
+            $dateStr = $date->format('Y-m-d');
+            $assignedUsersForDay[$dateStr][$constraint->user_id] = 'day_off';
+        }
     }
 
     private function applyMandatoryShifts(array &$finalShifts, array &$assignedUsers, $constraint, $infoShift, $roleInfo, int &$remainingCount): void
     {
-        if ($constraint->user_id && $remainingCount > 0) {
-            $finalShifts[] = [
-                'date' => $infoShift->date,
-                'start_time' => $infoShift->start_time,
-                'end_time' => $infoShift->end_time,
-                'user_id' => $constraint->user_id,
-                'role' => $roleInfo['role'],
-                'status' => 'mandatory_shift',
-            ];
-            $assignedUsers[$constraint->user_id] = $roleInfo['role'];
-            $remainingCount--;
+        $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
+        foreach ($period as $date) {
+            $dateStr = $date->format('Y-m-d');
+            if ($remainingCount > 0 && !isset($assignedUsers[$dateStr][$constraint->user_id])) {
+                $finalShifts[] = [
+                    'date' => $dateStr,
+                    'start_time' => $infoShift->start_time,
+                    'end_time' => $infoShift->end_time,
+                    'user_id' => $constraint->user_id,
+                    'role' => $roleInfo['role'],
+                    'status' => 'mandatory_shift',
+                ];
+                $assignedUsers[$dateStr][$constraint->user_id] = $roleInfo['role'];
+                $remainingCount--;
+            }
         }
     }
 
-    private function applyPairingConstraints(array &$assignedUsersForDay, $constraint, $infoShift): void
+    private function applyPairingConstraints(array &$assignedUsersForDay, $constraint): void
     {
-        if ($constraint->paired_user_id) {
-            $assignedUsersForDay[$constraint->user_id] = 'paired_with_' . $constraint->paired_user_id;
-            $assignedUsersForDay[$constraint->paired_user_id] = 'paired_with_' . $constraint->user_id;
+        $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
+        foreach ($period as $date) {
+            $dateStr = $date->format('Y-m-d');
+            if ($constraint->paired_user_id) {
+                $assignedUsersForDay[$dateStr][$constraint->user_id] = 'paired_with_' . $constraint->paired_user_id;
+                $assignedUsersForDay[$dateStr][$constraint->paired_user_id] = 'paired_with_' . $constraint->user_id;
+            }
         }
     }
 
-    private function applyNoPairingConstraints(array &$assignedUsersForDay, $constraint, $infoShift): void
+    private function applyNoPairingConstraints(array &$assignedUsersForDay, $constraint): void
     {
-        if ($constraint->paired_user_id) {
-            $assignedUsersForDay[$constraint->user_id] = 'no_pairing_with_' . $constraint->paired_user_id;
-            $assignedUsersForDay[$constraint->paired_user_id] = 'no_pairing_with_' . $constraint->user_id;
+        $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
+        foreach ($period as $date) {
+            $dateStr = $date->format('Y-m-d');
+            if ($constraint->paired_user_id) {
+                $assignedUsersForDay[$dateStr][$constraint->user_id] = 'no_pairing_with_' . $constraint->paired_user_id;
+                $assignedUsersForDay[$dateStr][$constraint->paired_user_id] = 'no_pairing_with_' . $constraint->user_id;
+            }
         }
     }
 
     private function applyShiftLimitConstraints(array &$assignedUsersForDay, $constraint): void
     {
-        $assignedUsersForDay[$constraint->user_id] = 'shift_limit_' . $constraint->max_shifts;
+        $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
+        $assignedCount = 0;
+        foreach ($period as $date) {
+            $dateStr = $date->format('Y-m-d');
+            if (isset($assignedUsersForDay[$dateStr][$constraint->user_id])) {
+                $assignedCount++;
+            }
+        }
+        $remainingShifts = $constraint->max_shifts - $assignedCount;
+        if ($remainingShifts > 0) {
+            $assignedUsersForDay[$constraint->user_id] = [
+                'shift_limit' => $constraint->max_shifts,
+                'remaining_shifts' => $remainingShifts,
+            ];
+        }
     }
 
-    private function processRequestsForRole(array &$finalShifts, array &$assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
+    private function processRequestsForRole(array &$finalShifts, array &$assignedUsers, array &$assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
     {
         $requestsForRole = $requestedShifts->filter(function ($reqShift) use ($infoShift, $roleInfo, $assignedUsersForDay) {
-            $isDayOff = isset($this->dayOffs[$reqShift->user_id]) &&
-                in_array($infoShift->date, $this->dayOffs[$reqShift->user_id]);
+            $isDayOff = isset($assignedUsersForDay[$infoShift->date][$reqShift->user_id]) &&
+                $assignedUsersForDay[$infoShift->date][$reqShift->user_id] === 'day_off';
+
+                // ここより上のさっきの要素を正誤判定でうまく機能してないことがあることを考慮しておく
+                // ここのデバックめんどくさかった
+
 
             return $infoShift->date === $reqShift->date
                 && $infoShift->start_time <= $reqShift->start_time
                 && $infoShift->end_time >= $reqShift->end_time
                 && in_array($roleInfo['role'], $this->getUserRoles($reqShift->user_id))
-                && !array_key_exists($reqShift->user_id, $assignedUsersForDay)
                 && !$isDayOff;
         });
 
@@ -164,6 +197,12 @@ class ConfirmedCalendar
                 break;
             }
 
+            // 割り当て済みユーザーを確認
+            $dateStr = $infoShift->date;
+            if (isset($assignedUsers[$dateStr][$request->user_id])) {
+                continue; // 既にその日に割り当てられている場合スキップ
+            }
+
             $finalShifts[] = [
                 'date' => $infoShift->date,
                 'start_time' => $infoShift->start_time,
@@ -173,7 +212,8 @@ class ConfirmedCalendar
                 'status' => 'processed_from_requests',
             ];
 
-            $assignedUsersForDay[$request->user_id] = $roleInfo['role'];
+            // 割り当て済みユーザーを記録
+            $assignedUsers[$dateStr][$request->user_id] = $roleInfo['role'];
             $remainingCount--;
         }
 
@@ -189,6 +229,14 @@ class ConfirmedCalendar
                 ];
             }
         }
+    }
+
+    private function createDatePeriod(string $startDate, string $endDate): \DatePeriod
+    {
+        $start = new \DateTime($startDate);
+        $end = (new \DateTime($endDate))->modify('+1 day');
+        $interval = new \DateInterval('P1D');
+        return new \DatePeriod($start, $interval, $end);
     }
 
     private function getUserRoles(int $userId): array

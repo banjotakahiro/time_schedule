@@ -13,19 +13,12 @@ use InvalidArgumentException;
 class ConfirmedCalendar
 {
     protected $month; // 基準月
-    protected $dayOffs = []; // ユーザーごとの休み情報
-
     public function __construct(string $month)
     {
         if (empty($month)) {
             throw new InvalidArgumentException('月が指定されていません。');
         }
         $this->month = $month;
-    }
-
-    public function setDayOffs(array $dayOffs): void
-    {
-        $this->dayOffs = $dayOffs;
     }
 
     public function generateShiftPlan(): array

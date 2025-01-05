@@ -177,9 +177,19 @@ class ConfirmedCalendar
                 continue; // day_offの場合はスキップ
             }
 
+            // ユーザーがすでにその日に別の役割を持っている場合スキップ
+            if (isset($assignedUsers[$infoShift->date][$request->user_id])) {
+                continue;
+            }
+
             $this->assignShift($finalShifts, $assignedUsers, $request, $infoShift, $roleInfo);
             $remainingCount--;
             $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
+
+            // 必要人数に達した場合ループ終了
+            if ($remainingCount <= 0) {
+                break;
+            }
         }
 
         // 複数人申請しているシフトを処理
@@ -188,14 +198,12 @@ class ConfirmedCalendar
                 break;
             }
 
-            usort($requests, function ($a, $b) use ($shiftCounts) {
-                $countA = $shiftCounts[$a->user_id] ?? 0;
-                $countB = $shiftCounts[$b->user_id] ?? 0;
-                if ($countA === $countB) {
-                    return $this->getUserPriority($a->user_id) <=> $this->getUserPriority($b->user_id);
-                }
-                return $countA <=> $countB;
-            });
+            // シフト数が少ない順、同数の場合はpriority順で並べ替え
+            $requests = $requests->sortBy(function ($request) use ($shiftCounts) {
+                $count = $shiftCounts[$request->user_id] ?? 0;
+                $priority = $this->getUserPriority($request->user_id);
+                return [$count, $priority];
+            })->values();
 
             foreach ($requests as $request) {
                 if ($remainingCount <= 0) {
@@ -204,6 +212,11 @@ class ConfirmedCalendar
 
                 if ($this->isUserDayOff($assignedUsersForDay, $infoShift->date, $request->user_id)) {
                     continue; // day_offの場合はスキップ
+                }
+
+                // ユーザーがすでにその日に別の役割を持っている場合スキップ
+                if (isset($assignedUsers[$infoShift->date][$request->user_id])) {
+                    continue;
                 }
 
                 $this->assignShift($finalShifts, $assignedUsers, $request, $infoShift, $roleInfo);
@@ -226,6 +239,8 @@ class ConfirmedCalendar
             }
         }
     }
+
+
 
     private function getSingleRequestShifts($requestedShifts, $infoShift, $roleInfo)
     {
@@ -265,7 +280,7 @@ class ConfirmedCalendar
     }
 
 
-// この下の関数はユーザーが休みになったときにユーザーをシフトの申請から除外する処理です
+    // この下の関数はユーザーが休みになったときにユーザーをシフトの申請から除外する処理です
     private function isUserDayOff(array $assignedUsersForDay, string $date, int $userId): bool
     {
         return isset($assignedUsersForDay[$date][$userId]) && $assignedUsersForDay[$date][$userId] === 'day_off';

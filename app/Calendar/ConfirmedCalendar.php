@@ -183,7 +183,7 @@ class ConfirmedCalendar
     private function processRequestsForRole(array &$finalShifts, array &$assignedUsers, array &$assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
     {
         $singleRequestShifts = $this->getSingleRequestShifts($requestedShifts, $infoShift, $roleInfo);
-        // $multipleRequestShifts = $this->getMultipleRequestShifts($requestedShifts, $infoShift, $roleInfo);
+        $multipleRequestShifts = $this->getMultipleRequestShifts($requestedShifts, $infoShift, $roleInfo);
 
         $shiftCounts = []; // 各ユーザーのシフト数を記録
 
@@ -217,56 +217,56 @@ class ConfirmedCalendar
             }
         }
 
-        // // 複数人申請しているシフトを処理
-        // foreach ($multipleRequestShifts as $requests) {
-        //     if ($remainingCount <= 0) {
-        //         break;
-        //     }
+        // 複数人申請しているシフトを処理
+        foreach ($multipleRequestShifts as $requests) {
+            if ($remainingCount <= 0) {
+                break;
+            }
 
-        //     // シフト数が少ない順、同数の場合はpriority順で並べ替え
-        //     $requests = $requests->sortBy(function ($request) use ($shiftCounts) {
-        //         $count = $shiftCounts[$request->user_id] ?? 0;
-        //         $priority = $this->getUserPriority($request->user_id);
-        //         return [$count, $priority];
-        //     })->values();
+            // シフト数が少ない順、同数の場合はpriority順で並べ替え
+            $requests = $requests->sortBy(function ($request) use ($shiftCounts) {
+                $count = $shiftCounts[$request->user_id] ?? 0;
+                $priority = $this->getUserPriority($request->user_id);
+                return [$count, $priority];
+            })->values();
 
-        //     if ($infoShift->date == '2024-12-15') {
-        //         $final = [
-        //             [
-        //                 'info_date' => $infoShift->date,
-        //                 'date_1' => $requests[0]->date ?? null,
-        //                 'user_id_1' => $requests[0]->user_id ?? null,
-        //                 'date_2' => $requests[1]->date ?? null,
-        //                 'user_id_2' => $requests[1]->user_id ?? null,
-        //             ],
-        //             "message" => "こんにちは",
-        //         ];
-        //         dd($final);
-        //     }
+            if ($infoShift->date == '2024-12-15') {
+                $final = [
+                    [
+                        'info_date' => $infoShift->date,
+                        'date_1' => $requests[0]->date ?? null,
+                        'user_id_1' => $requests[0]->user_id ?? null,
+                        'date_2' => $requests[1]->date ?? null,
+                        'user_id_2' => $requests[1]->user_id ?? null,
+                    ],
+                    "message" => "こんにちは",
+                ];
+                dd($final);
+            }
 
-        //     foreach ($requests as $request) {
-        //         if ($remainingCount <= 0) {
-        //             break;
-        //         }
+            foreach ($requests as $request) {
+                if ($remainingCount <= 0) {
+                    break;
+                }
 
-        //         if ($this->isUserDayOff($assignedUsersForDay, $infoShift->date, $request->user_id)) {
-        //             continue; // day_offの場合はスキップ
-        //         }
+                if ($this->isUserDayOff($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                    continue; // day_offの場合はスキップ
+                }
 
-        //         // ユーザーがすでにその日に別の役割を持っている場合スキップ
-        //         if (isset($assignedUsers[$infoShift->date][$request->user_id])) {
-        //             continue;
-        //         }
-        //         // paired_withの制約を確認
-        //         if ($this->isUserRestrictedByPairing($assignedUsersForDay, $infoShift->date, $request->user_id)) {
-        //             continue; // pairing制約に該当する場合はスキップ
-        //         }
+                // ユーザーがすでにその日に別の役割を持っている場合スキップ
+                if (isset($assignedUsers[$infoShift->date][$request->user_id])) {
+                    continue;
+                }
+                // paired_withの制約を確認
+                if ($this->isUserRestrictedByPairing($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                    continue; // pairing制約に該当する場合はスキップ
+                }
 
-        //         $this->assignShift($finalShifts, $assignedUsers, $assignedUsersForDay, $request, $infoShift, $roleInfo);
-        //         $remainingCount--;
-        //         $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
-        //     }
-        // }
+                $this->assignShift($finalShifts, $assignedUsers, $assignedUsersForDay, $request, $infoShift, $roleInfo);
+                $remainingCount--;
+                $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
+            }
+        }
 
         if ($remainingCount > 0) {
             for ($i = 0; $i < $remainingCount; $i++) {

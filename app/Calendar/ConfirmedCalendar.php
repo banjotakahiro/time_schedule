@@ -47,7 +47,7 @@ class ConfirmedCalendar
         });
 
         foreach ($informationShifts as $infoShift) {
-            $assignedUsersForDay = []; // その日の割り当てを追跡する配列
+            $constraintShiftForDay = []; // その日の割り当てを追跡する配列
 
             // 各役割と必要な人数の情報を取得
             $rolesWithCounts = [
@@ -67,7 +67,7 @@ class ConfirmedCalendar
                 foreach ($constraints as $constraint) {
                     switch ($constraint->status) {
                         case 'day_off':
-                            $this->applyDayOffConstraint($assignedUsersForDay, $constraint);
+                            $this->applyDayOffConstraint($constraintShiftForDay, $constraint);
                             break;
                         case 'mandatory_shift':
                             $this->applyMandatoryShifts($finalShifts, $assignedUsers, $constraint, $infoShift, $roleInfo, $remainingCount);
@@ -78,17 +78,17 @@ class ConfirmedCalendar
                             // applyPairingConstraints を呼び出して日付リストを取得
                             // 現在の日付が pairedDates に含まれる場合のみ実行
 
-                            $pairedDates = $this->applyPairingConstraints($assignedUsersForDay, $constraint);
+                            $pairedDates = $this->applyPairingConstraints($constraintShiftForDay, $constraint);
                             if (in_array($infoShift->date, $pairedDates, true)) {
                                 // paired_withの制約を確認しつつペアリングシフトを割り当てる
                                 $this->processPairingShifts($finalShifts, $assignedUsers, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
                             }
                             break;
                         case 'no_pairing':
-                            $this->applyNoPairingConstraints($assignedUsersForDay, $constraint);
+                            $this->applyNoPairingConstraints($constraintShiftForDay, $constraint);
                             break;
                         case 'shift_limit':
-                            $this->applyShiftLimitConstraints($assignedUsersForDay, $constraint);
+                            $this->applyShiftLimitConstraints($constraintShiftForDay, $constraint);
                             break;
                         default:
                             break;
@@ -96,18 +96,18 @@ class ConfirmedCalendar
                 }
 
                 // 2. 通常のシフト割り当てを実行
-                $this->processRequestsForRole($finalShifts, $assignedUsers, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
+                $this->processRequestsForRole($finalShifts, $assignedUsers, $constraintShiftForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
             }
         }
         return $finalShifts; // 最終的なシフト表を返す
     }
 
-    private function applyDayOffConstraint(array &$assignedUsersForDay, $constraint): void
+    private function applyDayOffConstraint(array &$constraintShiftForDay, $constraint): void
     {
         $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
-            $assignedUsersForDay[$dateStr][$constraint->user_id] = 'day_off';
+            $constraintShiftForDay[$dateStr][$constraint->user_id] = 'day_off';
         }
     }
 
@@ -131,7 +131,7 @@ class ConfirmedCalendar
         }
     }
 
-    private function applyPairingConstraints(array &$assignedUsersForDay, $constraint): array
+    private function applyPairingConstraints(array &$constraintShiftForDay, $constraint): array
     {
         $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
         $dates = []; // 日付を格納する配列
@@ -141,46 +141,47 @@ class ConfirmedCalendar
             $dates[] = $dateStr; // 日付をリストに追加
 
             if ($constraint->paired_user_id) {
-                $assignedUsersForDay[$dateStr][$constraint->user_id] = 'paired_with_' . $constraint->paired_user_id;
-                $assignedUsersForDay[$dateStr][$constraint->paired_user_id] = 'paired_with_' . $constraint->user_id;
+                $constraintShiftForDay[$dateStr][$constraint->user_id] = 'paired_with_' . $constraint->paired_user_id;
+                $constraintShiftForDay[$dateStr][$constraint->paired_user_id] = 'paired_with_' . $constraint->user_id;
             }
         }
 
         return $dates; // 日付リストを返す
     }
 
-    private function applyNoPairingConstraints(array &$assignedUsersForDay, $constraint): void
+    private function applyNoPairingConstraints(array &$constraintShiftForDay, $constraint): void
     {
         $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
             if ($constraint->paired_user_id) {
-                $assignedUsersForDay[$dateStr][$constraint->user_id] = 'no_pairing_with_' . $constraint->paired_user_id;
-                $assignedUsersForDay[$dateStr][$constraint->paired_user_id] = 'no_pairing_with_' . $constraint->user_id;
+                $constraintShiftForDay[$dateStr][$constraint->user_id] = 'no_pairing_with_' . $constraint->paired_user_id;
+                $constraintShiftForDay[$dateStr][$constraint->paired_user_id] = 'no_pairing_with_' . $constraint->user_id;
             }
         }
     }
 
-    private function applyShiftLimitConstraints(array &$assignedUsersForDay, $constraint): void
+    private function applyShiftLimitConstraints(array &$constraintShiftForDay, $constraint): void
     {
         $period = $this->createDatePeriod($constraint->start_date, $constraint->end_date);
-        $assignedCount = 0;
+        $dates = []; // 日付リストを初期化
+
         foreach ($period as $date) {
             $dateStr = $date->format('Y-m-d');
-            if (isset($assignedUsersForDay[$dateStr][$constraint->user_id])) {
-                $assignedCount++;
-            }
+            $constraintShiftForDay[$dateStr][$constraint->user_id] = 'max_shifts';
+            $dates[] = $dateStr; // 日付をリストに追加
         }
-        $remainingShifts = $constraint->max_shifts - $assignedCount;
-        if ($remainingShifts > 0) {
-            $assignedUsersForDay[$constraint->user_id] = [
-                'shift_limit' => $constraint->max_shifts,
-                'remaining_shifts' => $remainingShifts,
-            ];
-        }
+
+        // max_shifts_explain に日付リストを含める
+        $constraintShiftForDay[$constraint->user_id]['max_shifts_explain'] = [
+            'shift_limit' => $constraint->max_shifts,
+            'current_shifts_count' => 0,
+            'dates' => $dates, // 日付リストを保持
+        ];
     }
 
-    private function processRequestsForRole(array &$finalShifts, array &$assignedUsers, array &$assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
+
+    private function processRequestsForRole(array &$finalShifts, array &$assignedUsers, array &$constraintShiftForDay, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
     {
         $singleRequestShifts = $this->getSingleRequestShifts($requestedShifts, $infoShift, $roleInfo);
         $multipleRequestShifts = $this->getMultipleRequestShifts($requestedShifts, $infoShift, $roleInfo);
@@ -193,7 +194,7 @@ class ConfirmedCalendar
         // これはpriorityも使えないかなりのやらかしですが、先いきます。なぜか、シングルでどんなシフト処理も勝手にやってしまう。その代わり登録する順番がいじれない
         // この二人以上処理が少ない人順に割り当てれるようになれば、no_pairingも解消します！！
         foreach ($singleRequestShifts as $request) {
-            if ($this->isUserDayOff($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+            if ($this->isUserDayOff($constraintShiftForDay, $infoShift->date, $request->user_id)) {
                 continue; // day_offの場合はスキップ
             }
 
@@ -203,11 +204,11 @@ class ConfirmedCalendar
             }
 
             // paired_withの制約を確認
-            if ($this->isUserRestrictedByPairing($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+            if ($this->isUserRestrictedByPairing($constraintShiftForDay, $infoShift->date, $request->user_id)) {
                 continue; // pairing制約に該当する場合はスキップ
             }
 
-            $this->assignShift($finalShifts, $assignedUsers, $assignedUsersForDay, $request, $infoShift, $roleInfo);
+            $this->assignShift($finalShifts, $assignedUsers, $constraintShiftForDay, $request, $infoShift, $roleInfo);
             $remainingCount--;
             $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
 
@@ -230,26 +231,12 @@ class ConfirmedCalendar
                 return [$count, $priority];
             })->values();
 
-            if ($infoShift->date == '2024-12-15') {
-                $final = [
-                    [
-                        'info_date' => $infoShift->date,
-                        'date_1' => $requests[0]->date ?? null,
-                        'user_id_1' => $requests[0]->user_id ?? null,
-                        'date_2' => $requests[1]->date ?? null,
-                        'user_id_2' => $requests[1]->user_id ?? null,
-                    ],
-                    "message" => "こんにちは",
-                ];
-                dd($final);
-            }
-
             foreach ($requests as $request) {
                 if ($remainingCount <= 0) {
                     break;
                 }
 
-                if ($this->isUserDayOff($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                if ($this->isUserDayOff($constraintShiftForDay, $infoShift->date, $request->user_id)) {
                     continue; // day_offの場合はスキップ
                 }
 
@@ -258,11 +245,11 @@ class ConfirmedCalendar
                     continue;
                 }
                 // paired_withの制約を確認
-                if ($this->isUserRestrictedByPairing($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                if ($this->isUserRestrictedByPairing($constraintShiftForDay, $infoShift->date, $request->user_id)) {
                     continue; // pairing制約に該当する場合はスキップ
                 }
 
-                $this->assignShift($finalShifts, $assignedUsers, $assignedUsersForDay, $request, $infoShift, $roleInfo);
+                $this->assignShift($finalShifts, $assignedUsers, $constraintShiftForDay, $request, $infoShift, $roleInfo);
                 $remainingCount--;
                 $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
             }
@@ -285,14 +272,14 @@ class ConfirmedCalendar
     /**
      * pairing制約によるシフト不可確認
      */
-    private function isUserRestrictedByPairing(array $assignedUsersForDay, string $date, int $userId): bool
+    private function isUserRestrictedByPairing(array $constraintShiftForDay, string $date, int $userId): bool
     {
-        if (!isset($assignedUsersForDay[$date])) {
+        if (!isset($constraintShiftForDay[$date])) {
             return false; // その日に割り当てがない場合は問題なし
         }
 
         // paired_with制約に該当する場合
-        if (isset($assignedUsersForDay[$date][$userId]) && str_starts_with($assignedUsersForDay[$date][$userId], 'paired_with_')) {
+        if (isset($constraintShiftForDay[$date][$userId]) && str_starts_with($constraintShiftForDay[$date][$userId], 'paired_with_')) {
             return true;
         }
 
@@ -324,16 +311,18 @@ class ConfirmedCalendar
                 if ($this->canPairWork($requestedShifts, $infoShift, $request->user_id, $pairedUserId)) {
                     $roleInfo = $rolesWithCounts;
                     // 新人の役割を割り当て
-                    $this->assignShift($finalShifts, $assignedUsers, $assignedUsersForDay, $request, $infoShift, $roleInfo);
+                    $this->assignShift($finalShifts, $assignedUsers, $constraintShiftForDay, $request, $infoShift, $roleInfo);
                     $remainingCount--;
 
                     // バイトリーダーの役割を割り当て
-                    $this->assignShift($finalShifts, $assignedUsers, $assignedUsersForDay, (object)['user_id' => $pairedUserId], $infoShift, $roleInfo);
+                    $this->assignShift($finalShifts, $assignedUsers, $constraintShiftForDay, (object)['user_id' => $pairedUserId], $infoShift, $roleInfo);
                     $remainingCount--;
                 }
             }
         }
     }
+
+
 
     // 必要な補助関数
     private function isPairedUser(int $userId): bool
@@ -383,7 +372,7 @@ class ConfirmedCalendar
         });
     }
 
-    private function assignShift(array &$finalShifts, array &$assignedUsers, array &$assignedUsersForDay, $request, $infoShift, $roleInfo)
+    private function assignShift(array &$finalShifts, array &$assignedUsers, array &$constraintShiftForDay, $request, $infoShift, $roleInfo)
     {
         $finalShifts[] = [
             'date' => $infoShift->date,
@@ -395,13 +384,25 @@ class ConfirmedCalendar
         ];
 
         $assignedUsers[$infoShift->date][$request->user_id] = $roleInfo['role'];
+
+        // max_shifts が存在するか確認し、current_shifts_count を更新する
+        if ($constraintShiftForDay[$infoShift->date][$request->user_id] == 'max_shifts') {
+            $constraintShiftForDay[$request->user_id]['max_shifts_explain']['current_shifts_count']++;
+
+            // current_shifts_count が shift_limit に達した場合、ユーザーを permanently に assignedUsers に割り当てる
+            if ($constraintShiftForDay[$request->user_id]['max_shifts_explain']['current_shifts_count'] >= $constraintShiftForDay[$request->user_id]['max_shifts_explain']['shift_limit']) {
+                foreach ($constraintShiftForDay[$request->user_id]['max_shifts_explain']['dates'] as $applicable_day) {
+                    $assignedUsers[$applicable_day][$request->user_id] = 'max_shifts_reached';
+                }
+            }
+        }
         // no_pairing のチェックと追加入力
         // ここでnopairingが割り当てられているときの処理をしている
         if (
-            isset($assignedUsersForDay[$infoShift->date][$request->user_id]) &&
-            strpos($assignedUsersForDay[$infoShift->date][$request->user_id], 'no_pairing_with_') === 0
+            isset($constraintShiftForDay[$infoShift->date][$request->user_id]) &&
+            strpos($constraintShiftForDay[$infoShift->date][$request->user_id], 'no_pairing_with_') === 0
         ) {
-            $noPairingUserId = (int)str_replace('no_pairing_with_', '', $assignedUsersForDay[$infoShift->date][$request->user_id]);
+            $noPairingUserId = (int)str_replace('no_pairing_with_', '', $constraintShiftForDay[$infoShift->date][$request->user_id]);
             $assignedUsers[$infoShift->date][$noPairingUserId] = 'no_pairing_restricted';
         }
     }
@@ -409,9 +410,9 @@ class ConfirmedCalendar
 
 
     // この下の関数はユーザーが休みになったときにユーザーをシフトの申請から除外する処理です
-    private function isUserDayOff(array $assignedUsersForDay, string $date, $userId): bool
+    private function isUserDayOff(array $constraintShiftForDay, string $date, $userId): bool
     {
-        return isset($assignedUsersForDay[$date][$userId]) && $assignedUsersForDay[$date][$userId] === 'day_off';
+        return isset($constraintShiftForDay[$date][$userId]) && $constraintShiftForDay[$date][$userId] === 'day_off';
     }
 
 

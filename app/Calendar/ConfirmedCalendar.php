@@ -84,9 +84,11 @@ class ConfirmedCalendar
                     }
                 }
 
-                if ($remainingCount > 0) {
-                    $this->processRequestsForRole($finalShifts, $assignedUsers, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
-                }
+                // 1. ペアリングシフトの割り当てを優先
+                $this->processPairingShifts($finalShifts, $assignedUsers, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
+
+                // 2. 通常のシフト割り当てを実行
+                $this->processRequestsForRole($finalShifts, $assignedUsers, $assignedUsersForDay, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
             }
         }
         return $finalShifts; // 最終的なシフト表を返す
@@ -182,6 +184,16 @@ class ConfirmedCalendar
                 continue;
             }
 
+            // nopairing制約を確認
+            if ($this->isNoPairingConflict($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                continue; // nopairing制約に該当する場合はスキップ
+            }
+
+            // paired_withの制約を確認
+            if ($this->isUserRestrictedByPairing($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                continue; // pairing制約に該当する場合はスキップ
+            }
+
             $this->assignShift($finalShifts, $assignedUsers, $request, $infoShift, $roleInfo);
             $remainingCount--;
             $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
@@ -219,13 +231,22 @@ class ConfirmedCalendar
                     continue;
                 }
 
+                // nopairing制約を確認
+                if ($this->isNoPairingConflict($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                    continue; // nopairing制約に該当する場合はスキップ
+                }
+
+                // paired_withの制約を確認
+                if ($this->isUserRestrictedByPairing($assignedUsersForDay, $infoShift->date, $request->user_id)) {
+                    continue; // pairing制約に該当する場合はスキップ
+                }
+
                 $this->assignShift($finalShifts, $assignedUsers, $request, $infoShift, $roleInfo);
                 $remainingCount--;
                 $shiftCounts[$request->user_id] = ($shiftCounts[$request->user_id] ?? 0) + 1;
             }
         }
-
-        // 未割り当てのシフトを記録
+        
         if ($remainingCount > 0) {
             for ($i = 0; $i < $remainingCount; $i++) {
                 $finalShifts[] = [
@@ -240,7 +261,91 @@ class ConfirmedCalendar
         }
     }
 
+    /**
+     * 指定されたユーザーがnopairing制約に違反しているかを確認 nopairing制約により指定されたユーザーはお互いがシフトに入ることはなくなる。
+     */
+    private function isNoPairingConflict(array $assignedUsersForDay, string $date, int $userId): bool
+    {
+        if (!isset($assignedUsersForDay[$date])) {
+            return false; // その日の割り当てがまだない場合は問題なし
+        }
 
+        foreach ($assignedUsersForDay[$date] as $assignedUserId => $constraint) {
+            if ($constraint === 'no_pairing_with_' . $userId || $constraint === 'no_pairing_with_' . $assignedUserId) {
+                return true; // nopairing制約に該当する場合
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * pairing制約によるシフト不可確認
+     */
+    private function isUserRestrictedByPairing(array $assignedUsersForDay, string $date, int $userId): bool
+    {
+        if (!isset($assignedUsersForDay[$date])) {
+            return false; // その日に割り当てがない場合は問題なし
+        }
+
+        // paired_with制約に該当する場合
+        if (isset($assignedUsersForDay[$date][$userId]) && str_starts_with($assignedUsersForDay[$date][$userId], 'paired_with_')) {
+            return true;
+        }
+
+        return false;
+    }
+    // ペアリングされたシフトを事前に割り当てる。指定されたペアリングのユーザーは事前に割り当てられる
+    private function processPairingShifts(array &$finalShifts, array &$assignedUsers, $requestedShifts, $infoShift, $roleInfo, int &$remainingCount): void
+    {
+        foreach ($requestedShifts as $request) {
+            if ($remainingCount <= 0) {
+                break;
+            }
+
+            if ($this->isPairedUser($request->user_id)) {
+                $pairedUserId = $this->getPairedUserId($request->user_id);
+
+                // 新人またはバイトリーダーがday_offの場合はスキップ
+                if (
+                    $this->isUserDayOff($assignedUsers, $infoShift->date, $request->user_id) ||
+                    $this->isUserDayOff($assignedUsers, $infoShift->date, $pairedUserId)
+                ) {
+                    continue;
+                }
+
+                // 新人がバイトリーダーと共にシフトに入れるか確認
+                if ($this->canPairWork($requestedShifts, $infoShift, $request->user_id, $pairedUserId)) {
+                    // 新人のシフトを割り当て
+                    $this->assignShift($finalShifts, $assignedUsers, $request, $infoShift, $roleInfo);
+                    $remainingCount--;
+
+                    // バイトリーダーのシフトを割り当て
+                    $this->assignShift($finalShifts, $assignedUsers, (object)['user_id' => $pairedUserId], $infoShift, $roleInfo);
+                    $remainingCount--;
+                }
+            }
+        }
+    }
+
+    // 必要な補助関数
+    private function isPairedUser(int $userId): bool
+    {
+        // ペアリング設定を持つユーザーか確認
+        return ShiftConstraint::where('user_id', $userId)->whereNotNull('paired_user_id')->exists();
+    }
+
+    private function getPairedUserId(int $userId): ?int
+    {
+        $constraint = ShiftConstraint::where('user_id', $userId)->first();
+        return $constraint ? $constraint->paired_user_id : null;
+    }
+
+    private function canPairWork($requestedShifts, $infoShift, $userId, $pairedUserId): bool
+    {
+        return $requestedShifts->where('user_id', $userId)->where('date', $infoShift->date)->isNotEmpty()
+            && $requestedShifts->where('user_id', $pairedUserId)->where('date', $infoShift->date)->isNotEmpty();
+    }
 
     private function getSingleRequestShifts($requestedShifts, $infoShift, $roleInfo)
     {
@@ -281,7 +386,7 @@ class ConfirmedCalendar
 
 
     // この下の関数はユーザーが休みになったときにユーザーをシフトの申請から除外する処理です
-    private function isUserDayOff(array $assignedUsersForDay, string $date, int $userId): bool
+    private function isUserDayOff(array $assignedUsersForDay, string $date, $userId): bool
     {
         return isset($assignedUsersForDay[$date][$userId]) && $assignedUsersForDay[$date][$userId] === 'day_off';
     }

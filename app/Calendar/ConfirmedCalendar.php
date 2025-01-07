@@ -46,8 +46,25 @@ class ConfirmedCalendar
             return $a->priority - $b->priority; // 数字が小さい順
         });
 
+        // 処理を分けた。複数回の処理でリセットされてしまうものがあったので
+        $constraintShiftForDay = []; // その日の割り当てを追跡する配列
+
+        foreach ($constraints as $constraint) {
+            switch ($constraint->status) {
+                case 'day_off':
+                    $this->applyDayOffConstraint($constraintShiftForDay, $constraint);
+                    break;
+                case 'no_pairing':
+                    $this->applyNoPairingConstraints($constraintShiftForDay, $constraint);
+                    break;
+                case 'shift_limit':
+                    $this->applyShiftLimitConstraints($constraintShiftForDay, $constraint);
+                    break;
+                default:
+                    break;
+            }
+        }
         foreach ($informationShifts as $infoShift) {
-            $constraintShiftForDay = []; // その日の割り当てを追跡する配列
 
             // 各役割と必要な人数の情報を取得
             $rolesWithCounts = [
@@ -60,35 +77,20 @@ class ConfirmedCalendar
                 if (!$roleInfo['role'] || $roleInfo['count'] <= 0) {
                     continue;
                 }
-                // ここのstatusのコードは毎回毎回精査してることになってるからあんまりきれいじゃない。わざわざ配列で保持する必要性がなくなってしまう
-                // 時間があったら直したい
 
                 $remainingCount = $roleInfo['count']; // 割り当てが必要な人数
                 foreach ($constraints as $constraint) {
                     switch ($constraint->status) {
-                        case 'day_off':
-                            $this->applyDayOffConstraint($constraintShiftForDay, $constraint);
-                            break;
                         case 'mandatory_shift':
                             $this->applyMandatoryShifts($finalShifts, $assignedUsers, $constraint, $infoShift, $roleInfo, $remainingCount);
                             break;
                         case 'pairing':
-                            // 1. ペアリングシフトの割り当てを優先
-                            // 現在の日付が pairedDates に含まれる場合のみ実行
-                            // applyPairingConstraints を呼び出して日付リストを取得
-                            // 現在の日付が pairedDates に含まれる場合のみ実行
-
+                            // ペアリングシフトの割り当てを優先
                             $pairedDates = $this->applyPairingConstraints($constraintShiftForDay, $constraint);
                             if (in_array($infoShift->date, $pairedDates, true)) {
                                 // paired_withの制約を確認しつつペアリングシフトを割り当てる
                                 $this->processPairingShifts($finalShifts, $assignedUsers, $requestedShifts, $infoShift, $roleInfo, $remainingCount);
                             }
-                            break;
-                        case 'no_pairing':
-                            $this->applyNoPairingConstraints($constraintShiftForDay, $constraint);
-                            break;
-                        case 'shift_limit':
-                            $this->applyShiftLimitConstraints($constraintShiftForDay, $constraint);
                             break;
                         default:
                             break;
@@ -386,13 +388,14 @@ class ConfirmedCalendar
         $assignedUsers[$infoShift->date][$request->user_id] = $roleInfo['role'];
 
         // max_shifts が存在するか確認し、current_shifts_count を更新する
-        if ($constraintShiftForDay[$infoShift->date][$request->user_id] == 'max_shifts') {
-            $constraintShiftForDay[$request->user_id]['max_shifts_explain']['current_shifts_count']++;
-
-            // current_shifts_count が shift_limit に達した場合、ユーザーを permanently に assignedUsers に割り当てる
-            if ($constraintShiftForDay[$request->user_id]['max_shifts_explain']['current_shifts_count'] >= $constraintShiftForDay[$request->user_id]['max_shifts_explain']['shift_limit']) {
-                foreach ($constraintShiftForDay[$request->user_id]['max_shifts_explain']['dates'] as $applicable_day) {
-                    $assignedUsers[$applicable_day][$request->user_id] = 'max_shifts_reached';
+        if (isset($constraintShiftForDay[$infoShift->date][$request->user_id])) {
+            if ($constraintShiftForDay[$infoShift->date][$request->user_id] == 'max_shifts') {
+                $constraintShiftForDay[$request->user_id]['max_shifts_explain']['current_shifts_count']++;
+                // current_shifts_count が shift_limit に達した場合、ユーザーを permanently に assignedUsers に割り当てる
+                if ($constraintShiftForDay[$request->user_id]['max_shifts_explain']['current_shifts_count'] >= $constraintShiftForDay[$request->user_id]['max_shifts_explain']['shift_limit']) {
+                    foreach ($constraintShiftForDay[$request->user_id]['max_shifts_explain']['dates'] as $applicable_day) {
+                        $assignedUsers[$applicable_day][$request->user_id] = 'max_shifts_reached';
+                    }
                 }
             }
         }

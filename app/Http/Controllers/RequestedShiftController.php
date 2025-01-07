@@ -39,7 +39,6 @@ class RequestedShiftController extends Controller
 
         $week_days_show = new WeekDaysShow() ;
         $show_schdule = $week_days_show -> show_week_schedule($week);
-        
         return view('requested_shifts.index', [
             'currentWeek' => $week,
             'show_schedule' => $show_schdule,

@@ -32,16 +32,23 @@ class WeekDaysShow
             foreach ($weekDays as $date) { // $date は 'Y-m-d' 形式の文字列
                 // 該当日のシフトをすべて取得
                 $shifts = $user->requestedShifts->filter(function ($shift) use ($date) {
-                    return Carbon::parse($shift->start)->format('Y-m-d') === $date; // 日付を文字列で比較
+                    return Carbon::parse($shift->date)->format('Y-m-d') === $date; // 日付を文字列で比較
                 });
 
                 // 日付をキー、シフトを配列で格納
                 $schedule[$date] = $shifts->isNotEmpty()
-                    ? $shifts->pluck('title')->toArray() // シフトタイトルを取得
+                    ? $shifts->map(function ($shift) {
+                        $start = Carbon::parse($shift->start_time)->format('H:i'); // 開始時間を整形
+                        $end = Carbon::parse($shift->end_time)->format('H:i');     // 終了時間を整形
+                        return "{$start}～{$end}"; // "開始時間～終了時間" の形式で保存
+                    })->toArray() // 配列として格納
                     : ['シフトなし']; // シフトがなければ 'シフトなし'
             }
 
-        // スケジュールデータを格納
+
+
+
+            // スケジュールデータを格納
             $userSchedules[] = [
                 'name' => $user->name,
                 'user_id' => $user->id,

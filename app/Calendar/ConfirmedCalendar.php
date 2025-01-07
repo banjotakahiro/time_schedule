@@ -190,6 +190,7 @@ class ConfirmedCalendar
 
         $shiftCounts = []; // 各ユーザーのシフト数を記録
 
+
         // ここの処理がなにかやりすぎています。二人以上の申請があっても通り用になっている。
         // 1人だけ申請したシフトを処理
 
@@ -372,6 +373,7 @@ class ConfirmedCalendar
         })->groupBy('user_id')->filter(function ($group) {
             return count($group) > 1;
         });
+        dd("こんにちは");
     }
 
     private function assignShift(array &$finalShifts, array &$assignedUsers, array &$constraintShiftForDay, $request, $infoShift, $roleInfo)

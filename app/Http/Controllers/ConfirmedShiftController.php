@@ -56,7 +56,8 @@ class ConfirmedShiftController extends Controller
         ])->get();
         $users = User::select('id', 'name')->get();
         $roles = Role::select('id', 'name')->get();
-
+        $users_find_id = User::pluck('name', 'id');
+        $roles_find_id = Role::pluck('name', 'id');
         // $confirmed_shifts = ConfirmedShift::all();
         // 月のデータを取得
         $month_days_show = new MonthDaysShow();
@@ -69,6 +70,8 @@ class ConfirmedShiftController extends Controller
             'shift_constraints' => $shift_constraints,
             'users' => $users,
             'roles' => $roles,
+            'users_find_id' => $users_find_id,
+            'roles_find_id' => $roles_find_id,
         ]);
     }
 

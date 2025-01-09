@@ -72,10 +72,9 @@
               <div class="mt-6 text-sm text-gray-600">
                 @if (!empty($shiftsForDate))
                 @foreach ($shiftsForDate as $shift)
-                <p>ユーザーID: {{ $shift->user_id ?? '未割り当て' }}</p>
+                <p>ユーザーID: {{ $users_find_id[$shift->user_id] ?? '未割り当て' }}</p>
                 <p>時間: {{ \Carbon\Carbon::parse($shift->start_time)->setTimezone('Asia/Tokyo')->format('H:i') }} - {{ \Carbon\Carbon::parse($shift->end_time)->setTimezone('Asia/Tokyo')->format('H:i') }}</p>
-                <p>役割: {{ $shift->role_id ?? '未設定' }}</p>
-                <p>状態: {{ $shift->status }}</p>
+                <p>役割: {{ $roles_find_id[$shift->role_id]?? '未設定' }}</p>
                 <hr class="my-1 border-gray-300">
                 @endforeach
                 @else
